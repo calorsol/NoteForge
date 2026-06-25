@@ -3,6 +3,8 @@ dist/
 src/server/data/*.db
 src/server/data/test-artifacts/
 src/server/.env
+.env
+.env.*
 server.log
 server.err.log
 client.log

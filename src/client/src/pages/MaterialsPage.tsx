@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, ApiError, type DayStat, type Material } from "../api";
+import { renderMarkdown } from "../markdown";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { SearchIcon, TrashIcon } from "../components/icons";
+import { CalendarIcon, ClockIcon, EditIcon, SearchIcon, TrashIcon } from "../components/icons";
 
 function today(): string {
   const now = new Date();
@@ -325,6 +326,7 @@ function MaterialEditor({
   onSave: (patch: Partial<Pick<Material, "title" | "content" | "day">>) => void;
   onDelete: () => void;
 }) {
+  const [mode, setMode] = useState<"read" | "edit">("read");
   const [title, setTitle] = useState(material.title);
   const [content, setContent] = useState(material.content);
   const [day, setDay] = useState(material.day);
@@ -334,45 +336,82 @@ function MaterialEditor({
   return (
     <div className="material-editor">
       <div className="mat-editor-titlebar">
-        <input
-          className="title-input"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="资料标题"
-        />
-        <button className="icon-btn" title="删除资料" onClick={onDelete}>
-          <TrashIcon size={18} />
-        </button>
-      </div>
-      <div className="material-meta">
-        <label>
-          采集日期：
+        {mode === "edit" ? (
           <input
-            className="day-pick"
-            type="date"
-            value={day}
-            onChange={(e) => setDay(e.target.value)}
+            className="title-input"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="资料标题"
+            autoFocus
           />
-        </label>
-        <span>更新于 {material.updated_at}</span>
+        ) : (
+          <h1 className="mat-read-title">{material.title || "无标题"}</h1>
+        )}
+        <div className="mat-editor-tools">
+          <div className="seg">
+            <button className={mode === "read" ? "active" : ""} onClick={() => setMode("read")}>
+              阅读
+            </button>
+            <button className={mode === "edit" ? "active" : ""} onClick={() => setMode("edit")}>
+              编辑
+            </button>
+          </div>
+          <button className="icon-btn" title="删除资料" onClick={onDelete}>
+            <TrashIcon size={18} />
+          </button>
+        </div>
       </div>
-      <textarea
-        className="content-area"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="在这里粘贴资料、数据、链接摘要…（支持 Markdown）"
-      />
-      <div className="editor-actions">
-        <button
-          className="btn btn-primary"
-          disabled={!dirty || saveState === "saving"}
-          onClick={() => onSave({ title: title.trim() || "无标题", content, day })}
-        >
-          {saveState === "saving" ? "保存中…" : "保存"}
-        </button>
-        {saveState === "saved" && <span className="save-hint">已保存</span>}
-        {dirty && saveState === "idle" && <span className="save-hint">有未保存的修改</span>}
+
+      <div className="material-meta">
+        {mode === "edit" ? (
+          <label className="meta-daypick">
+            <CalendarIcon size={14} />
+            采集日期：
+            <input
+              className="day-pick"
+              type="date"
+              value={day}
+              onChange={(e) => setDay(e.target.value)}
+            />
+          </label>
+        ) : (
+          <span className="meta-pill">
+            <CalendarIcon size={13} />
+            采集于 {material.day}
+          </span>
+        )}
+        <span className="meta-pill soft">
+          <ClockIcon size={13} />
+          更新于 {material.updated_at}
+        </span>
       </div>
+
+      {mode === "edit" ? (
+        <>
+          <textarea
+            className="content-area"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="在这里粘贴资料、数据、链接摘要…（支持 Markdown）"
+          />
+          <div className="editor-actions">
+            <button
+              className="btn btn-primary"
+              disabled={!dirty || saveState === "saving"}
+              onClick={() => onSave({ title: title.trim() || "无标题", content, day })}
+            >
+              {saveState === "saving" ? "保存中…" : "保存"}
+            </button>
+            {saveState === "saved" && <span className="save-hint">已保存</span>}
+            {dirty && saveState === "idle" && <span className="save-hint">有未保存的修改</span>}
+          </div>
+        </>
+      ) : (
+        <div
+          className="mat-read prose"
+          dangerouslySetInnerHTML={{ __html: renderMarkdown(material.content || "_（这份资料还没有内容，点右上角「编辑」补充）_") }}
+        />
+      )}
     </div>
   );
 }

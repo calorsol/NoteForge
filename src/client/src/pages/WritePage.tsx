@@ -9,7 +9,7 @@ import {
 } from "../api";
 import { renderMarkdown, countWords } from "../markdown";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { ChevronDown, ChevronUp, EyeIcon, PlusIcon, TrashIcon } from "../components/icons";
+import { ChevronDown, ChevronUp, EditIcon, EyeIcon, PlusIcon, TrashIcon } from "../components/icons";
 import {
   BGS,
   FONTS,
@@ -398,7 +398,7 @@ function MaterialDrawer({
 }) {
   const [day, setDay] = useState(today());
   const [materials, setMaterials] = useState<Material[]>([]);
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [justAddedId, setJustAddedId] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
@@ -420,13 +420,8 @@ function MaterialDrawer({
     load(day);
   }, [day, load]);
 
-  function toggle(id: number) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  function updateMaterial(updated: Material) {
+    setMaterials((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
   }
 
   async function submitAdd() {
@@ -443,7 +438,7 @@ function MaterialDrawer({
       setNewContent("");
       setAdding(false);
       await load(day);
-      setExpanded((prev) => new Set(prev).add(data.material.id));
+      setJustAddedId(data.material.id);
     } catch (err) {
       onAuthError(err);
     }
@@ -453,11 +448,6 @@ function MaterialDrawer({
   async function deleteMaterial(id: number) {
     try {
       await api(`/materials/${id}`, { method: "DELETE" });
-      setExpanded((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
       await load(day);
     } catch (err) {
       onAuthError(err);
@@ -514,34 +504,19 @@ function MaterialDrawer({
       </div>
 
       <div className="drawer-scroll">
-        {materials.map((m) => {
-          const open = expanded.has(m.id);
-          return (
-            <div
-              key={m.id}
-              className={`drawer-card ${open ? "open" : ""}`}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                setMenu({ id: m.id, x: e.clientX, y: e.clientY });
-              }}
-            >
-              <button className="drawer-card-head" onClick={() => toggle(m.id)}>
-                <span className="dch-title">{m.title || "无标题"}</span>
-                {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </button>
-              {open ? (
-                <div
-                  className="drawer-card-full prose"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content || "（空）") }}
-                />
-              ) : (
-                <div className="drawer-card-snippet">
-                  {m.content.replace(/\s+/g, " ").slice(0, 50) || "（空）"}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {materials.map((m) => (
+          <DrawerCard
+            key={m.id}
+            material={m}
+            defaultOpen={m.id === justAddedId}
+            onAuthError={onAuthError}
+            onUpdated={updateMaterial}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setMenu({ id: m.id, x: e.clientX, y: e.clientY });
+            }}
+          />
+        ))}
 
         {materials.length === 0 && (
           <p className="drawer-empty">这一天还没有资料，点上面「添加资料」。</p>
@@ -574,5 +549,130 @@ function MaterialDrawer({
       </>
     )}
     </>
+  );
+}
+
+// ---------- 抽屉里的单张资料卡：单击展开预览 / 双击进入可编辑详情 ----------
+function DrawerCard({
+  material,
+  defaultOpen,
+  onAuthError,
+  onUpdated,
+  onContextMenu,
+}: {
+  material: Material;
+  defaultOpen: boolean;
+  onAuthError: (err: unknown) => void;
+  onUpdated: (updated: Material) => void;
+  onContextMenu: (e: React.MouseEvent) => void;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(material.title);
+  const [content, setContent] = useState(material.content);
+  const [saving, setSaving] = useState(false);
+
+  // 资料被外部更新（且当前没在编辑）时，同步本地输入
+  useEffect(() => {
+    if (!editing) {
+      setTitle(material.title);
+      setContent(material.content);
+    }
+  }, [material, editing]);
+
+  function handleClick() {
+    if (open) {
+      setOpen(false);
+      setEditing(false);
+    } else {
+      setOpen(true);
+    }
+  }
+
+  function handleDoubleClick() {
+    setOpen(true);
+    setEditing(true);
+  }
+
+  function cancelEdit() {
+    setTitle(material.title);
+    setContent(material.content);
+    setEditing(false);
+  }
+
+  async function save() {
+    setSaving(true);
+    try {
+      const data = await api<{ material: Material }>(`/materials/${material.id}`, {
+        method: "PUT",
+        body: { title: title.trim() || "无标题", content },
+      });
+      onUpdated(data.material);
+      setEditing(false);
+    } catch (err) {
+      onAuthError(err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className={`drawer-card ${open ? "open" : ""}`} onContextMenu={onContextMenu}>
+      <div
+        className="drawer-card-head"
+        role="button"
+        tabIndex={0}
+        title="单击展开 · 双击编辑"
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+      >
+        <span className="dch-title">{material.title || "无标题"}</span>
+        {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </div>
+
+      {open ? (
+        editing ? (
+          <div className="drawer-card-edit">
+            <input
+              className="dce-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="资料标题"
+              autoFocus
+            />
+            <textarea
+              className="dce-content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="粘贴资料、数据、链接摘要…（支持 Markdown）"
+            />
+            <div className="dce-actions">
+              <button className="btn btn-sm" onClick={cancelEdit} disabled={saving}>
+                取消
+              </button>
+              <button className="btn btn-sm btn-primary" onClick={save} disabled={saving}>
+                {saving ? "保存中…" : "保存"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="drawer-card-body">
+            <div
+              className="drawer-card-full prose"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(material.content || "（空）") }}
+            />
+            <div className="dcb-actions">
+              <button className="btn btn-sm" onClick={() => setEditing(true)}>
+                <EditIcon size={13} /> 编辑
+              </button>
+            </div>
+          </div>
+        )
+      ) : (
+        <div className="drawer-card-snippet" onClick={handleClick}>
+          {material.content.replace(/\s+/g, " ").slice(0, 50) || "（空）"}
+        </div>
+      )}
+    </div>
   );
 }

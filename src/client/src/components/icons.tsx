@@ -84,3 +84,19 @@ export const CalendarIcon = ({ size = 16, className }: IconProps) =>
       <line x1="3" y1="10" x2="21" y2="10" />
     </>
   ));
+
+export const ClockIcon = ({ size = 16, className }: IconProps) =>
+  base(size, className, (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 15 14" />
+    </>
+  ));
+
+export const EditIcon = ({ size = 16, className }: IconProps) =>
+  base(size, className, (
+    <>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </>
+  ));
