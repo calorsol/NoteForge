@@ -1,0 +1,13 @@
+services:
+  noteforge:
+    build: .
+    container_name: noteforge
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ./data:/app/src/server/data

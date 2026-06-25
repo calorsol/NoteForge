@@ -1,0 +1,14 @@
+node_modules
+dist
+src/client/dist
+.git
+.gitignore
+.claude
+.playwright-mcp
+doc
+*.log
+**/*.log
+.env
+src/server/.env
+src/server/data/*.db
+src/server/data/test-artifacts
