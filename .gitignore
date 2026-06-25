@@ -1,0 +1,11 @@
+node_modules/
+dist/
+src/server/data/*.db
+src/server/data/test-artifacts/
+src/server/.env
+server.log
+server.err.log
+client.log
+client.err.log
+.playwright-mcp/
+.claude/

@@ -1,0 +1,102 @@
+<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <filter id="shadow2" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#28231a" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="720" fill="#eceae3"/>
+  <rect x="16" y="16" width="1248" height="688" rx="16" fill="#ffffff" stroke="#e7e3db" filter="url(#shadow2)"/>
+
+  <!-- top bar -->
+  <g>
+    <rect x="40" y="37" width="12" height="12" rx="3" fill="#c2603a"/>
+    <text x="60" y="51" font-size="17" font-weight="600" fill="#2b2a28">NoteForge</text>
+    <rect x="160" y="35" width="60" height="27" rx="8" fill="#f4e6df"/>
+    <text x="170" y="52" font-size="14" fill="#a84d2c">资料库</text>
+    <text x="244" y="51" font-size="14" fill="#6b6862">写作中心</text>
+    <text x="1240" y="51" font-size="13" fill="#9c988f" text-anchor="end">demo · 退出</text>
+    <line x1="16" y1="73" x2="1264" y2="73" stroke="#e7e3db"/>
+  </g>
+
+  <!-- col 1: year / month / day -->
+  <g>
+    <rect x="16" y="73" width="220" height="631" fill="#fbfaf8"/>
+    <line x1="236" y1="73" x2="236" y2="704" stroke="#e7e3db"/>
+    <text x="40" y="104" font-size="11" letter-spacing="0.5" fill="#9c988f">日期</text>
+    <rect x="40" y="114" width="92" height="30" rx="8" fill="#ffffff" stroke="#e7e3db"/>
+    <text x="52" y="134" font-size="13" fill="#2b2a28">2026 年</text>
+    <path d="M115 130 l5 5 l5 -5" fill="none" stroke="#9c988f" stroke-width="1.5" stroke-linecap="round"/>
+    <rect x="140" y="114" width="76" height="30" rx="8" fill="#ffffff" stroke="#e7e3db"/>
+    <text x="152" y="134" font-size="13" fill="#2b2a28">6 月</text>
+    <path d="M199 130 l5 5 l5 -5" fill="none" stroke="#9c988f" stroke-width="1.5" stroke-linecap="round"/>
+
+    <text x="40" y="170" font-size="11" fill="#9c988f">6 月有资料的日期</text>
+    <rect x="32" y="180" width="188" height="36" rx="9" fill="#c2603a"/>
+    <text x="48" y="203" font-size="13" font-weight="600" fill="#ffffff">25 日 · 今天</text>
+    <text x="200" y="203" font-size="12" fill="#ffe9e0" text-anchor="end">3</text>
+
+    <text x="48" y="240" font-size="13" fill="#6b6862">24 日</text>
+    <text x="200" y="240" font-size="12" fill="#b3aea4" text-anchor="end">5</text>
+    <text x="48" y="272" font-size="13" fill="#6b6862">23 日</text>
+    <text x="200" y="272" font-size="12" fill="#b3aea4" text-anchor="end">2</text>
+    <text x="48" y="304" font-size="13" fill="#6b6862">22 日</text>
+    <text x="200" y="304" font-size="12" fill="#b3aea4" text-anchor="end">4</text>
+  </g>
+
+  <!-- col 2: searchable material list -->
+  <g>
+    <rect x="236" y="73" width="300" height="631" fill="#ffffff"/>
+    <line x1="536" y1="73" x2="536" y2="704" stroke="#e7e3db"/>
+    <rect x="256" y="90" width="200" height="32" rx="9" fill="#fbfaf8" stroke="#e7e3db"/>
+    <circle cx="274" cy="106" r="5" fill="none" stroke="#9c988f" stroke-width="1.6"/>
+    <line x1="278" y1="110" x2="282" y2="114" stroke="#9c988f" stroke-width="1.6" stroke-linecap="round"/>
+    <text x="290" y="111" font-size="13" fill="#9c988f">搜索资料</text>
+    <rect x="466" y="90" width="54" height="32" rx="9" fill="#c2603a"/>
+    <text x="493" y="111" font-size="13" fill="#ffffff" text-anchor="middle">+ 新增</text>
+
+    <line x1="236" y1="138" x2="536" y2="138" stroke="#e7e3db"/>
+
+    <rect x="248" y="150" width="276" height="54" rx="10" fill="#f4e6df" stroke="#f4e6df"/>
+    <text x="264" y="174" font-size="14" font-weight="600" fill="#2b2a28">今日 GDP 数据</text>
+    <text x="264" y="193" font-size="12" fill="#9c988f">二季度 GDP 同比增长 5.2%，环比 0.9%…</text>
+
+    <text x="264" y="232" font-size="14" font-weight="600" fill="#2b2a28">央行利率会议纪要</text>
+    <text x="264" y="251" font-size="12" fill="#9c988f">维持政策利率不变，强调稳健灵活。</text>
+
+    <text x="264" y="290" font-size="14" font-weight="600" fill="#2b2a28">行业访谈摘录</text>
+    <text x="264" y="309" font-size="12" fill="#9c988f">受访者认为下半年订单将温和复苏。</text>
+
+    <text x="264" y="348" font-size="14" font-weight="600" fill="#2b2a28">竞品数据对比</text>
+    <text x="264" y="367" font-size="12" fill="#9c988f">A 厂商市占率 32%，B 厂商 21%。</text>
+  </g>
+
+  <!-- col 3: editor -->
+  <g>
+    <text x="572" y="142" font-size="25" font-weight="700" fill="#2b2a28" font-family="Georgia, 'Songti SC', serif">今日 GDP 数据</text>
+    <rect x="1190" y="118" width="34" height="30" rx="7" fill="#ffffff" stroke="#f0d8cd"/>
+    <g stroke="#c0392b" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="1200" y1="129" x2="1214" y2="129"/>
+      <line x1="1205" y1="126" x2="1209" y2="126"/>
+      <path d="M1202 129 l0.8 12 a1.5 1.5 0 0 0 1.5 1.4 h4.4 a1.5 1.5 0 0 0 1.5 -1.4 l0.8 -12"/>
+      <line x1="1205" y1="133" x2="1205" y2="139"/>
+      <line x1="1209" y1="133" x2="1209" y2="139"/>
+    </g>
+
+    <text x="572" y="178" font-size="12.5" fill="#9c988f">采集日期</text>
+    <rect x="640" y="166" width="100" height="20" rx="5" fill="#ffffff" stroke="#e7e3db"/>
+    <text x="650" y="181" font-size="12" fill="#6b6862">2026-06-25</text>
+    <text x="760" y="178" font-size="12.5" fill="#9c988f">更新于 11:20</text>
+
+    <rect x="572" y="202" width="652" height="380" rx="10" fill="#ffffff" stroke="#e7e3db"/>
+    <text x="592" y="234" font-size="15" font-weight="600" fill="#2b2a28">二季度 GDP</text>
+    <text x="592" y="262" font-size="14" fill="#2b2a28">同比增长 5.2%，环比 0.9%，高于市场预期 5.0%。</text>
+    <text x="592" y="290" font-size="14" fill="#2b2a28">- 第三产业贡献率升至 58%</text>
+    <text x="592" y="316" font-size="14" fill="#2b2a28">- 社会消费品零售总额同比 +4.1%</text>
+    <text x="592" y="342" font-size="14" fill="#2b2a28">- 制造业投资回暖，固定资产投资 +3.8%</text>
+
+    <rect x="572" y="600" width="74" height="34" rx="9" fill="#c2603a"/>
+    <text x="609" y="622" font-size="13" fill="#ffffff" text-anchor="middle">保存</text>
+    <text x="660" y="622" font-size="12.5" fill="#9c988f">已保存</text>
+  </g>
+</svg>

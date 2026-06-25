@@ -1,0 +1,61 @@
+import fs from "node:fs";
+import path from "node:path";
+import Database from "better-sqlite3";
+
+export type DatabaseHandle = {
+  close: () => void;
+  getConnection: () => Database.Database;
+};
+
+function ensureDirectory(filePath: string) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+}
+
+function initialize(connection: Database.Database) {
+  connection.pragma("foreign_keys = ON");
+
+  connection.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      username      TEXT    NOT NULL UNIQUE,
+      password_hash TEXT    NOT NULL,
+      created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS materials (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      day         TEXT    NOT NULL,
+      title       TEXT    NOT NULL,
+      content     TEXT    NOT NULL DEFAULT '',
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+      updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_materials_user_day ON materials(user_id, day);
+
+    CREATE TABLE IF NOT EXISTS documents (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title       TEXT    NOT NULL DEFAULT '无标题文档',
+      content     TEXT    NOT NULL DEFAULT '',
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+      updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_documents_user ON documents(user_id, updated_at);
+  `);
+}
+
+export function createDatabase(filePath: string): DatabaseHandle {
+  ensureDirectory(filePath);
+  const connection = new Database(filePath);
+  initialize(connection);
+
+  return {
+    close: () => connection.close(),
+    getConnection: () => connection,
+  };
+}
+
+const defaultDbPath = path.join(process.cwd(), "src", "server", "data", "noteforge.db");
+
+export const database = createDatabase(defaultDbPath);
