@@ -112,6 +112,98 @@ withServer("materials: update and delete", async ({ baseUrl }) => {
   assert.equal(missing.status, 404);
 });
 
+withServer("materials: derive title from content and reject empty saves", async ({ baseUrl }) => {
+  const token = await registerUser(baseUrl, "mattitle");
+
+  const created = await fetch(`${baseUrl}/api/materials`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ day: "2026-07-01", title: "", content: "" }),
+  });
+  assert.equal(created.status, 201);
+  const createdPayload = await created.json();
+  assert.equal(createdPayload.material.title, "");
+
+  const derived = await fetch(`${baseUrl}/api/materials/${createdPayload.material.id}`, {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify({ title: "", content: "这是正文的前八个字后面还有内容" }),
+  });
+  assert.equal(derived.status, 200);
+  assert.equal((await derived.json()).material.title, "这是正文的前八个");
+
+  const rejected = await fetch(`${baseUrl}/api/materials/${createdPayload.material.id}`, {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify({ title: "", content: "   " }),
+  });
+  assert.equal(rejected.status, 400);
+});
+
+withServer("materials: annotations can be created, listed, updated, and deleted", async ({ baseUrl }) => {
+  const token = await registerUser(baseUrl, "matnote");
+
+  const created = await fetch(`${baseUrl}/api/materials`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({
+      day: "2026-07-01",
+      title: "标注资料",
+      content: "第一段内容。第二段内容。第三段内容。",
+    }),
+  });
+  assert.equal(created.status, 201);
+  const { material } = await created.json();
+
+  const annotationCreated = await fetch(`${baseUrl}/api/materials/${material.id}/annotations`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({
+      quote: "第二段内容",
+      note: "这里要重点看",
+      occurrence: 0,
+    }),
+  });
+  assert.equal(annotationCreated.status, 201);
+  const annotationPayload = await annotationCreated.json();
+  assert.equal(annotationPayload.annotation.quote, "第二段内容");
+  assert.equal(annotationPayload.annotation.note, "这里要重点看");
+
+  const listed = await fetch(`${baseUrl}/api/materials?day=2026-07-01`, {
+    headers: authHeaders(token),
+  });
+  assert.equal(listed.status, 200);
+  const listedPayload = await listed.json();
+  assert.equal(listedPayload.materials[0].annotations.length, 1);
+  assert.equal(listedPayload.materials[0].annotations[0].note, "这里要重点看");
+
+  const updated = await fetch(
+    `${baseUrl}/api/materials/${material.id}/annotations/${annotationPayload.annotation.id}`,
+    {
+      method: "PUT",
+      headers: authHeaders(token),
+      body: JSON.stringify({ note: "这里已经复查过了" }),
+    }
+  );
+  assert.equal(updated.status, 200);
+  assert.equal((await updated.json()).annotation.note, "这里已经复查过了");
+
+  const removed = await fetch(
+    `${baseUrl}/api/materials/${material.id}/annotations/${annotationPayload.annotation.id}`,
+    {
+      method: "DELETE",
+      headers: authHeaders(token),
+    }
+  );
+  assert.equal(removed.status, 204);
+
+  const relisted = await fetch(`${baseUrl}/api/materials?day=2026-07-01`, {
+    headers: authHeaders(token),
+  });
+  const relistedPayload = await relisted.json();
+  assert.equal(relistedPayload.materials[0].annotations.length, 0);
+});
+
 withServer("documents: create, get, update, list, delete", async ({ baseUrl }) => {
   const token = await registerUser(baseUrl, "docuser");
 

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import type { DatabaseHandle } from "../db";
 import { requireAuth } from "../middleware/requireAuth";
+import { resolveMaterialTitle } from "../../shared/materials";
 
 const dayPattern = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -15,15 +16,29 @@ function today() {
 
 const createSchema = z.object({
   day: z.string().regex(dayPattern).optional(),
-  title: z.string().trim().min(1).max(200),
+  title: z.string().max(200).optional(),
   content: z.string().optional(),
 });
 
 const updateSchema = z
   .object({
     day: z.string().regex(dayPattern).optional(),
-    title: z.string().trim().min(1).max(200).optional(),
+    title: z.string().max(200).optional(),
     content: z.string().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, { message: "没有可更新的字段" });
+
+const createAnnotationSchema = z.object({
+  quote: z.string().trim().min(1).max(500),
+  note: z.string().trim().min(1).max(2000),
+  occurrence: z.number().int().min(0),
+});
+
+const updateAnnotationSchema = z
+  .object({
+    quote: z.string().trim().min(1).max(500).optional(),
+    note: z.string().trim().min(1).max(2000).optional(),
+    occurrence: z.number().int().min(0).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, { message: "没有可更新的字段" });
 
@@ -36,13 +51,41 @@ type MaterialRow = {
   updated_at: string;
 };
 
+type AnnotationRow = {
+  id: number;
+  material_id: number;
+  quote: string;
+  note: string;
+  occurrence: number;
+  created_at: string;
+  updated_at: string;
+};
+
+function groupAnnotations(rows: AnnotationRow[]) {
+  const grouped = new Map<number, AnnotationRow[]>();
+  for (const row of rows) {
+    const current = grouped.get(row.material_id);
+    if (current) {
+      current.push(row);
+    } else {
+      grouped.set(row.material_id, [row]);
+    }
+  }
+  return grouped;
+}
+
+function getOwnedMaterial(db: ReturnType<DatabaseHandle["getConnection"]>, materialId: string, userId: number) {
+  return db
+    .prepare("SELECT id, title, content FROM materials WHERE id = ? AND user_id = ?")
+    .get(materialId, userId) as { id: number; title: string; content: string } | undefined;
+}
+
 export function createMaterialsRouter(database: DatabaseHandle) {
   const router = Router();
   const db = database.getConnection();
 
   router.use(requireAuth);
 
-  // 当前用户所有有资料的日期 + 每天条数（倒序），供年/月/日级联使用
   router.get("/days", (req, res) => {
     const rows = db
       .prepare(
@@ -56,11 +99,8 @@ export function createMaterialsRouter(database: DatabaseHandle) {
     res.json({ days: rows });
   });
 
-  // 某天的全部资料（创建时间正序）
   router.get("/", (req, res) => {
-    const day = typeof req.query.day === "string" && dayPattern.test(req.query.day)
-      ? req.query.day
-      : today();
+    const day = typeof req.query.day === "string" && dayPattern.test(req.query.day) ? req.query.day : today();
 
     const materials = db
       .prepare(
@@ -71,7 +111,26 @@ export function createMaterialsRouter(database: DatabaseHandle) {
       )
       .all(req.userId, day) as MaterialRow[];
 
-    res.json({ day, materials });
+    const materialIds = materials.map((material) => material.id);
+    const annotations = materialIds.length
+      ? (db
+          .prepare(
+            `SELECT id, material_id, quote, note, occurrence, created_at, updated_at
+             FROM material_annotations
+             WHERE material_id IN (${materialIds.map(() => "?").join(",")})
+             ORDER BY id ASC`
+          )
+          .all(...materialIds) as AnnotationRow[])
+      : [];
+    const annotationsByMaterial = groupAnnotations(annotations);
+
+    res.json({
+      day,
+      materials: materials.map((material) => ({
+        ...material,
+        annotations: annotationsByMaterial.get(material.id) ?? [],
+      })),
+    });
   });
 
   router.post("/", (req, res) => {
@@ -81,19 +140,16 @@ export function createMaterialsRouter(database: DatabaseHandle) {
     }
 
     const day = parsed.data.day ?? today();
+    const title = parsed.data.title?.trim() ?? "";
     const info = db
-      .prepare(
-        "INSERT INTO materials (user_id, day, title, content) VALUES (?, ?, ?, ?)"
-      )
-      .run(req.userId, day, parsed.data.title, parsed.data.content ?? "");
+      .prepare("INSERT INTO materials (user_id, day, title, content) VALUES (?, ?, ?, ?)")
+      .run(req.userId, day, title, parsed.data.content ?? "");
 
     const material = db
-      .prepare(
-        "SELECT id, day, title, content, created_at, updated_at FROM materials WHERE id = ?"
-      )
+      .prepare("SELECT id, day, title, content, created_at, updated_at FROM materials WHERE id = ?")
       .get(Number(info.lastInsertRowid)) as MaterialRow;
 
-    res.status(201).json({ material });
+    res.status(201).json({ material: { ...material, annotations: [] } });
   });
 
   router.put("/:id", (req, res) => {
@@ -102,11 +158,18 @@ export function createMaterialsRouter(database: DatabaseHandle) {
       return res.status(400).json({ error: "请求参数不合法" });
     }
 
-    const existing = db
-      .prepare("SELECT id FROM materials WHERE id = ? AND user_id = ?")
-      .get(req.params.id, req.userId);
+    const existing = getOwnedMaterial(db, req.params.id, req.userId);
     if (!existing) {
       return res.status(404).json({ error: "资料不存在" });
+    }
+
+    const resolvedTitle = resolveMaterialTitle({
+      currentTitle: existing.title,
+      nextTitle: parsed.data.title,
+      nextContent: parsed.data.content,
+    });
+    if (!resolvedTitle.ok) {
+      return res.status(400).json({ error: resolvedTitle.error });
     }
 
     const fields: string[] = [];
@@ -115,35 +178,136 @@ export function createMaterialsRouter(database: DatabaseHandle) {
       fields.push("day = ?");
       values.push(parsed.data.day);
     }
-    if (parsed.data.title !== undefined) {
-      fields.push("title = ?");
-      values.push(parsed.data.title);
-    }
     if (parsed.data.content !== undefined) {
       fields.push("content = ?");
       values.push(parsed.data.content);
     }
+    fields.push("title = ?");
+    values.push(resolvedTitle.title);
     fields.push("updated_at = datetime('now')");
 
-    db.prepare(
-      `UPDATE materials SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`
-    ).run(...values, req.params.id, req.userId);
+    db.prepare(`UPDATE materials SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`).run(
+      ...values,
+      req.params.id,
+      req.userId
+    );
 
     const material = db
-      .prepare(
-        "SELECT id, day, title, content, created_at, updated_at FROM materials WHERE id = ?"
-      )
+      .prepare("SELECT id, day, title, content, created_at, updated_at FROM materials WHERE id = ?")
       .get(req.params.id) as MaterialRow;
+    const annotations = db
+      .prepare(
+        `SELECT id, material_id, quote, note, occurrence, created_at, updated_at
+         FROM material_annotations
+         WHERE material_id = ?
+         ORDER BY id ASC`
+      )
+      .all(req.params.id) as AnnotationRow[];
 
-    res.json({ material });
+    res.json({ material: { ...material, annotations } });
   });
 
   router.delete("/:id", (req, res) => {
-    const info = db
-      .prepare("DELETE FROM materials WHERE id = ? AND user_id = ?")
-      .run(req.params.id, req.userId);
+    const info = db.prepare("DELETE FROM materials WHERE id = ? AND user_id = ?").run(req.params.id, req.userId);
     if (info.changes === 0) {
       return res.status(404).json({ error: "资料不存在" });
+    }
+    res.status(204).end();
+  });
+
+  router.post("/:id/annotations", (req, res) => {
+    const parsed = createAnnotationSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "请求参数不合法" });
+    }
+
+    const material = getOwnedMaterial(db, req.params.id, req.userId);
+    if (!material) {
+      return res.status(404).json({ error: "资料不存在" });
+    }
+
+    const info = db
+      .prepare(
+        `INSERT INTO material_annotations (material_id, quote, note, occurrence)
+         VALUES (?, ?, ?, ?)`
+      )
+      .run(req.params.id, parsed.data.quote, parsed.data.note, parsed.data.occurrence);
+
+    const annotation = db
+      .prepare(
+        `SELECT id, material_id, quote, note, occurrence, created_at, updated_at
+         FROM material_annotations
+         WHERE id = ?`
+      )
+      .get(Number(info.lastInsertRowid)) as AnnotationRow;
+
+    res.status(201).json({ annotation });
+  });
+
+  router.put("/:id/annotations/:annotationId", (req, res) => {
+    const parsed = updateAnnotationSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "请求参数不合法" });
+    }
+
+    const annotation = db
+      .prepare(
+        `SELECT ma.id
+         FROM material_annotations ma
+         JOIN materials m ON m.id = ma.material_id
+         WHERE ma.id = ? AND ma.material_id = ? AND m.user_id = ?`
+      )
+      .get(req.params.annotationId, req.params.id, req.userId);
+    if (!annotation) {
+      return res.status(404).json({ error: "标注不存在" });
+    }
+
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    if (parsed.data.quote !== undefined) {
+      fields.push("quote = ?");
+      values.push(parsed.data.quote);
+    }
+    if (parsed.data.note !== undefined) {
+      fields.push("note = ?");
+      values.push(parsed.data.note);
+    }
+    if (parsed.data.occurrence !== undefined) {
+      fields.push("occurrence = ?");
+      values.push(parsed.data.occurrence);
+    }
+    fields.push("updated_at = datetime('now')");
+
+    db.prepare(`UPDATE material_annotations SET ${fields.join(", ")} WHERE id = ? AND material_id = ?`).run(
+      ...values,
+      req.params.annotationId,
+      req.params.id
+    );
+
+    const updated = db
+      .prepare(
+        `SELECT id, material_id, quote, note, occurrence, created_at, updated_at
+         FROM material_annotations
+         WHERE id = ?`
+      )
+      .get(req.params.annotationId) as AnnotationRow;
+
+    res.json({ annotation: updated });
+  });
+
+  router.delete("/:id/annotations/:annotationId", (req, res) => {
+    const info = db
+      .prepare(
+        `DELETE FROM material_annotations
+         WHERE id = ?
+           AND material_id = ?
+           AND material_id IN (
+             SELECT id FROM materials WHERE id = ? AND user_id = ?
+           )`
+      )
+      .run(req.params.annotationId, req.params.id, req.params.id, req.userId);
+    if (info.changes === 0) {
+      return res.status(404).json({ error: "标注不存在" });
     }
     res.status(204).end();
   });

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import type { Material } from "../api";
 import {
+  buildVisibleDays,
   clampPaneWidth,
   getInitialEditorMode,
   getPreferredMaterialId,
@@ -16,6 +17,7 @@ const materials: Material[] = [
     content: "First",
     created_at: "2026-07-03 09:00:00",
     updated_at: "2026-07-03 09:00:00",
+    annotations: [],
   },
   {
     id: 12,
@@ -24,6 +26,7 @@ const materials: Material[] = [
     content: "Second",
     created_at: "2026-07-03 09:10:00",
     updated_at: "2026-07-03 09:10:00",
+    annotations: [],
   },
 ];
 
@@ -67,4 +70,30 @@ test("getInitialEditorMode opens newly created material in edit mode", () => {
   assert.equal(getInitialEditorMode(12, 12), "edit");
   assert.equal(getInitialEditorMode(11, 12), "read");
   assert.equal(getInitialEditorMode(12, null), "read");
+});
+
+test("buildVisibleDays keeps the currently selected day visible even when it becomes empty", () => {
+  assert.deepEqual(
+    buildVisibleDays(
+      [{ day: "2026-07-03", count: 2 }],
+      2026,
+      7,
+      "2026-07-01",
+      "2026-07-03"
+    ).map((day) => day.day),
+    ["2026-07-03", "2026-07-01"]
+  );
+});
+
+test("buildVisibleDays keeps today visible for the current month", () => {
+  assert.deepEqual(
+    buildVisibleDays(
+      [{ day: "2026-07-01", count: 1 }],
+      2026,
+      7,
+      "2026-07-01",
+      "2026-07-03"
+    ).map((day) => day.day),
+    ["2026-07-03", "2026-07-01"]
+  );
 });

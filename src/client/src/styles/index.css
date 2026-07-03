@@ -535,6 +535,190 @@ button {
   color: var(--text);
   padding-bottom: 24px;
 }
+.read-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.read-article-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.annotation-pane {
+  flex: 0 0 320px;
+  width: 320px;
+  align-self: stretch;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: calc(100vh - 180px);
+  position: sticky;
+  top: 20px;
+}
+.annotation-pane-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.annotation-pane-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.annotation-pane-subtitle {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.annotation-count {
+  min-width: 28px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 12px;
+  text-align: center;
+}
+.annotation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.annotation-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-faint);
+}
+.annotation-card {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  text-align: left;
+  padding: 12px;
+  cursor: pointer;
+}
+.annotation-card:hover {
+  border-color: var(--accent);
+}
+.annotation-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.annotation-card.unresolved {
+  border-style: dashed;
+}
+.annotation-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.annotation-badge {
+  font-size: 11px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.annotation-time {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.annotation-quote {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+  font-family: var(--serif);
+}
+.annotation-note {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-soft);
+  white-space: pre-wrap;
+}
+.annotation-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+.annotation-fragment {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  background: rgba(194, 96, 58, 0.08);
+  transition: background 0.15s;
+}
+.annotation-fragment.active,
+.annotation-fragment:hover {
+  background: rgba(194, 96, 58, 0.18);
+}
+.annotation-popover {
+  position: fixed;
+  z-index: 45;
+  width: 280px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 12px;
+}
+.annotation-popover-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.annotation-popover-quote {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.6;
+  max-height: 72px;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.annotation-popover textarea {
+  width: 100%;
+  min-height: 88px;
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--text);
+  resize: vertical;
+}
+.annotation-popover textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.annotation-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+.save-error {
+  color: var(--danger);
+}
 .content-area {
   width: 100%;
   min-height: 58vh;

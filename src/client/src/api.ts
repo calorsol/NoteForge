@@ -63,6 +63,16 @@ export type User = { id: number; username: string };
 
 export type DayStat = { day: string; count: number };
 
+export type MaterialAnnotation = {
+  id: number;
+  material_id: number;
+  quote: string;
+  note: string;
+  occurrence: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Material = {
   id: number;
   day: string;
@@ -70,6 +80,7 @@ export type Material = {
   content: string;
   created_at: string;
   updated_at: string;
+  annotations: MaterialAnnotation[];
 };
 
 export type DocumentSummary = {

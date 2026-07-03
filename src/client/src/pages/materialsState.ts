@@ -29,6 +29,7 @@ export type MaterialsViewState = {
   selectedDay: string | null;
   selectedId: number | null;
   query: string;
+  dayScrollTop: number;
   layout: MaterialsLayout;
 };
 
@@ -90,6 +91,41 @@ export function getInitialEditorMode(selectedId: number, pendingEditId: number |
   return selectedId === pendingEditId ? "edit" : "read";
 }
 
+export function buildVisibleDays(
+  stats: Array<{ day: string; count: number }>,
+  year: number,
+  month: number,
+  selectedDay: string | null,
+  today: string
+) {
+  const currentYear = Number(today.slice(0, 4));
+  const currentMonth = Number(today.slice(5, 7));
+
+  const list = stats
+    .filter((stat) => {
+      const parts = {
+        year: Number(stat.day.slice(0, 4)),
+        month: Number(stat.day.slice(5, 7)),
+      };
+      return parts.year === year && parts.month === month;
+    })
+    .map((stat) => ({ ...stat }));
+
+  if (year === currentYear && month === currentMonth && !list.some((stat) => stat.day === today)) {
+    list.push({ day: today, count: 0 });
+  }
+
+  if (selectedDay) {
+    const selectedYear = Number(selectedDay.slice(0, 4));
+    const selectedMonth = Number(selectedDay.slice(5, 7));
+    if (selectedYear === year && selectedMonth === month && !list.some((stat) => stat.day === selectedDay)) {
+      list.push({ day: selectedDay, count: 0 });
+    }
+  }
+
+  return list.sort((left, right) => (left.day < right.day ? 1 : -1));
+}
+
 function readInteger(value: unknown) {
   return typeof value === "number" && Number.isInteger(value) ? value : null;
 }
@@ -106,6 +142,7 @@ export function readMaterialsViewState(): MaterialsViewState | null {
       selectedDay: typeof value.selectedDay === "string" ? value.selectedDay : null,
       selectedId: readInteger(value.selectedId),
       query: typeof value.query === "string" ? value.query : "",
+      dayScrollTop: typeof value.dayScrollTop === "number" && Number.isFinite(value.dayScrollTop) ? value.dayScrollTop : 0,
       layout: normalizeMaterialsLayout(value.layout),
     };
   } catch {
