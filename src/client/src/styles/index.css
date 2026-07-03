@@ -239,17 +239,65 @@ button {
 
 /* ========== 资料库（三栏） ========== */
 .materials {
-  display: grid;
-  grid-template-columns: 220px 320px minmax(0, 1fr);
+  display: flex;
   height: 100%;
+  min-width: 0;
 }
 
 /* 第一栏：年/月/日 */
 .day-rail {
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   border-right: 1px solid var(--border);
   background: var(--surface-2);
-  overflow-y: auto;
   padding: 16px 12px;
+}
+.pane-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pane-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.materials-pane-collapsed {
+  flex: 0 0 auto;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 10px 8px;
+}
+.materials-pane-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-soft);
+  padding: 12px 0;
+}
+.materials-pane-toggle:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.materials-pane-toggle span {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.pane-toggle-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 .rail-head {
   font-size: 12px;
@@ -318,6 +366,8 @@ button {
 
 /* 第二栏：资料列表 + 搜索 */
 .mat-list-col {
+  flex: 0 0 auto;
+  min-width: 0;
   border-right: 1px solid var(--border);
   background: var(--surface);
   display: flex;
@@ -396,9 +446,13 @@ button {
 
 /* 第三栏：编辑区 */
 .mat-detail {
+  flex: 1 1 0;
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
-  padding: 40px 48px 56px;
+  padding: 32px 40px 48px;
 }
 .material-editor {
   max-width: 1040px;
@@ -508,6 +562,16 @@ button {
 .save-hint {
   font-size: 13px;
   color: var(--text-faint);
+}
+.mat-detail-empty {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.mat-detail-empty-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
 }
 
 /* ---------- 空状态 ---------- */
