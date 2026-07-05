@@ -566,6 +566,11 @@ button {
   justify-content: space-between;
   gap: 12px;
 }
+.annotation-pane-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .annotation-pane-title {
   font-size: 14px;
   font-weight: 700;

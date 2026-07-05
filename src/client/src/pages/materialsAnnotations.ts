@@ -3,6 +3,25 @@ export type QuoteRange = {
   end: number;
 };
 
+export type PendingAnnotationSelection = {
+  quote: string;
+  occurrence: number;
+};
+
+export function normalizeSelectedQuote(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+export function createPendingAnnotationSelection(text: string, rawQuote: string, start: number) {
+  const quote = normalizeSelectedQuote(rawQuote);
+  if (!quote) return null;
+
+  return {
+    quote,
+    occurrence: getQuoteOccurrence(text, quote, start),
+  } satisfies PendingAnnotationSelection;
+}
+
 export function getQuoteOccurrence(text: string, quote: string, start: number) {
   if (!quote) return 0;
 

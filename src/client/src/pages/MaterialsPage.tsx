@@ -32,7 +32,12 @@ import {
   type PaneKey,
   writeMaterialsViewState,
 } from "./materialsState";
-import { findQuoteRange, getQuoteOccurrence } from "./materialsAnnotations";
+import {
+  createPendingAnnotationSelection,
+  findQuoteRange,
+  getQuoteOccurrence,
+  type PendingAnnotationSelection,
+} from "./materialsAnnotations";
 
 const COLLAPSED_PANE_WIDTH = 52;
 
@@ -49,12 +54,10 @@ const CURRENT_YEAR = Number(TODAY.slice(0, 4));
 const CURRENT_MONTH = Number(TODAY.slice(5, 7));
 
 type SelectionDraft = {
-  quote: string;
   note: string;
-  occurrence: number;
   top: number;
   left: number;
-};
+} & PendingAnnotationSelection;
 
 type DecoratedAnnotation = {
   annotation: MaterialAnnotation;
@@ -837,12 +840,298 @@ function MaterialEditor({
           </div>
         </>
       ) : (
-        <MaterialReadView
+        <MaterialReadViewV2
           material={material}
           onCreateAnnotation={onCreateAnnotation}
           onUpdateAnnotation={onUpdateAnnotation}
           onDeleteAnnotation={onDeleteAnnotation}
         />
+      )}
+    </div>
+  );
+}
+
+function MaterialReadViewV2({
+  material,
+  onCreateAnnotation,
+  onUpdateAnnotation: _onUpdateAnnotation,
+  onDeleteAnnotation,
+}: {
+  material: Material;
+  onCreateAnnotation: (
+    payload: Pick<MaterialAnnotation, "quote" | "note" | "occurrence">
+  ) => Promise<MaterialAnnotation | null>;
+  onUpdateAnnotation: (
+    annotationId: number,
+    patch: Partial<Pick<MaterialAnnotation, "quote" | "note" | "occurrence">>
+  ) => void;
+  onDeleteAnnotation: (annotationId: number) => void;
+}) {
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+  const annotationMenuRef = useRef<HTMLDivElement | null>(null);
+  const renderedHtml = useMemo(
+    () => renderMarkdown(material.content || "_（这份资料还没有内容，先切到编辑模式补充正文）_"),
+    [material.content]
+  );
+
+  const [pendingSelection, setPendingSelection] = useState<PendingAnnotationSelection | null>(null);
+  const [selectionDraft, setSelectionDraft] = useState<SelectionDraft | null>(null);
+  const [annotationMenu, setAnnotationMenu] = useState<{ x: number; y: number } | null>(null);
+  const [activeAnnotationId, setActiveAnnotationId] = useState<number | null>(null);
+  const [decoratedAnnotations, setDecoratedAnnotations] = useState<DecoratedAnnotation[]>([]);
+  const [annotationPaneOpen, setAnnotationPaneOpen] = useState(false);
+
+  useEffect(() => {
+    setPendingSelection(null);
+    setSelectionDraft(null);
+    setAnnotationMenu(null);
+    setActiveAnnotationId(null);
+    setAnnotationPaneOpen(false);
+  }, [material.id]);
+
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+    setDecoratedAnnotations(
+      decorateAnnotations(container, renderedHtml, material.annotations, activeAnnotationId)
+    );
+  }, [renderedHtml, material.annotations, activeAnnotationId]);
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      const target = event.target as Node | null;
+      if (popoverRef.current?.contains(target ?? null)) {
+        return;
+      }
+      if (annotationMenuRef.current?.contains(target ?? null)) {
+        return;
+      }
+      if (contentRef.current?.contains(target ?? null)) {
+        return;
+      }
+      setPendingSelection(null);
+      setSelectionDraft(null);
+      setAnnotationMenu(null);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, []);
+
+  function handleMouseUp() {
+    const container = contentRef.current;
+    const selection = window.getSelection();
+    if (!container || !selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      setPendingSelection(null);
+      setAnnotationMenu(null);
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    if (!container.contains(range.commonAncestorContainer)) {
+      setPendingSelection(null);
+      setAnnotationMenu(null);
+      return;
+    }
+
+    const prefixRange = range.cloneRange();
+    prefixRange.selectNodeContents(container);
+    prefixRange.setEnd(range.startContainer, range.startOffset);
+    const start = prefixRange.toString().length;
+    const nextSelection = createPendingAnnotationSelection(
+      container.textContent ?? "",
+      selection.toString(),
+      start
+    );
+
+    if (!nextSelection) {
+      setPendingSelection(null);
+      setAnnotationMenu(null);
+      return;
+    }
+
+    setPendingSelection(nextSelection);
+    setAnnotationMenu(null);
+  }
+
+  function openAnnotationDraft(x: number, y: number) {
+    if (!pendingSelection) return;
+
+    setSelectionDraft({
+      ...pendingSelection,
+      note: "",
+      top: y + 8,
+      left: x,
+    });
+    setAnnotationMenu(null);
+    setAnnotationPaneOpen(true);
+  }
+
+  async function submitAnnotation() {
+    if (!selectionDraft) return;
+
+    const annotation = await onCreateAnnotation({
+      quote: selectionDraft.quote,
+      note: selectionDraft.note.trim(),
+      occurrence: selectionDraft.occurrence,
+    });
+
+    if (annotation) {
+      setPendingSelection(null);
+      setSelectionDraft(null);
+      setAnnotationMenu(null);
+      setActiveAnnotationId(annotation.id);
+      setAnnotationPaneOpen(true);
+      window.getSelection()?.removeAllRanges();
+    }
+  }
+
+  return (
+    <div className="read-layout">
+      <div className="read-article-wrap">
+        <div
+          ref={contentRef}
+          className="mat-read prose annotation-prose"
+          onMouseUp={handleMouseUp}
+          onContextMenu={(event) => {
+            if (!pendingSelection) {
+              return;
+            }
+            event.preventDefault();
+            setAnnotationMenu({ x: event.clientX, y: event.clientY });
+          }}
+          onClick={(event) => {
+            const target = event.target as HTMLElement;
+            const annotationId = target.closest<HTMLElement>("[data-annotation-id]")?.dataset.annotationId;
+            if (annotationId) {
+              setActiveAnnotationId(Number(annotationId));
+              setAnnotationPaneOpen(true);
+            }
+          }}
+        />
+
+        {selectionDraft && (
+          <div
+            ref={popoverRef}
+            className="annotation-popover"
+            style={{ top: selectionDraft.top, left: selectionDraft.left }}
+          >
+            <div className="annotation-popover-title">添加标注</div>
+            <div className="annotation-popover-quote">{selectionDraft.quote}</div>
+            <textarea
+              value={selectionDraft.note}
+              onChange={(event) =>
+                setSelectionDraft((current) => (current ? { ...current, note: event.target.value } : current))
+              }
+              placeholder="写下这段文字为什么重要"
+            />
+            <div className="annotation-popover-actions">
+              <button className="btn btn-sm" onClick={() => setSelectionDraft(null)}>
+                取消
+              </button>
+              <button
+                className="btn btn-sm btn-primary"
+                disabled={!selectionDraft.note.trim()}
+                onClick={() => void submitAnnotation()}
+              >
+                保存标注
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {annotationPaneOpen ? (
+        <aside className="annotation-pane">
+          <div className="annotation-pane-head">
+            <div>
+              <div className="annotation-pane-title">标注</div>
+              <div className="annotation-pane-subtitle">用于批量查看所有重点摘录</div>
+            </div>
+            <div className="annotation-pane-actions">
+              <span className="annotation-count">{material.annotations.length}</span>
+              <button
+                className="icon-btn pane-toggle-btn"
+                title="收起标注栏"
+                onClick={() => setAnnotationPaneOpen(false)}
+              >
+                <ChevronsRight size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div className="annotation-list">
+            {decoratedAnnotations.length === 0 ? (
+              <p className="annotation-empty">先选中文本，再右键添加标注。</p>
+            ) : (
+              decoratedAnnotations.map(({ annotation, resolved }) => (
+                <div
+                  key={annotation.id}
+                  className={`annotation-card ${annotation.id === activeAnnotationId ? "active" : ""} ${
+                    resolved ? "" : "unresolved"
+                  }`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setActiveAnnotationId(annotation.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setActiveAnnotationId(annotation.id);
+                    }
+                  }}
+                >
+                  <div className="annotation-card-top">
+                    <span className="annotation-badge">{resolved ? "已定位" : "未匹配"}</span>
+                    <span className="annotation-time">{annotation.updated_at}</span>
+                  </div>
+                  <div className="annotation-quote">{annotation.quote}</div>
+                  <div className="annotation-note">{annotation.note}</div>
+                  <div className="annotation-card-actions">
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDeleteAnnotation(annotation.id);
+                      }}
+                    >
+                      删除
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </aside>
+      ) : (
+        <CollapsedPane
+          label="标注"
+          expandLabel="展开标注栏"
+          iconDirection="left"
+          onExpand={() => setAnnotationPaneOpen(true)}
+        />
+      )}
+
+      {annotationMenu && (
+        <>
+          <div
+            className="menu-backdrop"
+            onClick={() => setAnnotationMenu(null)}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              setAnnotationMenu(null);
+            }}
+          />
+          <div
+            ref={annotationMenuRef}
+            className="context-menu"
+            style={{ left: annotationMenu.x, top: annotationMenu.y }}
+          >
+            <button onClick={() => openAnnotationDraft(annotationMenu.x, annotationMenu.y)}>
+              添加标注
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
@@ -866,18 +1155,25 @@ function MaterialReadView({
 }) {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
+  const annotationMenuRef = useRef<HTMLDivElement | null>(null);
   const renderedHtml = useMemo(
     () => renderMarkdown(material.content || "_（这份资料还没有内容，先切到编辑模式补充正文）_"),
     [material.content]
   );
 
+  const [pendingSelection, setPendingSelection] = useState<PendingAnnotationSelection | null>(null);
   const [selectionDraft, setSelectionDraft] = useState<SelectionDraft | null>(null);
+  const [annotationMenu, setAnnotationMenu] = useState<{ x: number; y: number } | null>(null);
   const [activeAnnotationId, setActiveAnnotationId] = useState<number | null>(null);
   const [decoratedAnnotations, setDecoratedAnnotations] = useState<DecoratedAnnotation[]>([]);
+  const [annotationPaneOpen, setAnnotationPaneOpen] = useState(false);
 
   useEffect(() => {
+    setPendingSelection(null);
     setSelectionDraft(null);
+    setAnnotationMenu(null);
     setActiveAnnotationId(null);
+    setAnnotationPaneOpen(false);
   }, [material.id]);
 
   useEffect(() => {
@@ -894,10 +1190,15 @@ function MaterialReadView({
       if (popoverRef.current?.contains(target ?? null)) {
         return;
       }
+      if (annotationMenuRef.current?.contains(target ?? null)) {
+        return;
+      }
       if (contentRef.current?.contains(target ?? null)) {
         return;
       }
+      setPendingSelection(null);
       setSelectionDraft(null);
+      setAnnotationMenu(null);
     }
 
     document.addEventListener("mousedown", handlePointerDown);
@@ -908,17 +1209,15 @@ function MaterialReadView({
     const container = contentRef.current;
     const selection = window.getSelection();
     if (!container || !selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      setPendingSelection(null);
+      setAnnotationMenu(null);
       return;
     }
 
     const range = selection.getRangeAt(0);
     if (!container.contains(range.commonAncestorContainer)) {
-      return;
-    }
-
-    const quote = selection.toString().replace(/\s+/g, " ").trim();
-    if (!quote) {
-      setSelectionDraft(null);
+      setPendingSelection(null);
+      setAnnotationMenu(null);
       return;
     }
 
@@ -926,16 +1225,32 @@ function MaterialReadView({
     prefixRange.selectNodeContents(container);
     prefixRange.setEnd(range.startContainer, range.startOffset);
     const start = prefixRange.toString().length;
-    const occurrence = getQuoteOccurrence(container.textContent ?? "", quote, start);
-    const rect = range.getBoundingClientRect();
+    const nextSelection = createPendingAnnotationSelection(
+      container.textContent ?? "",
+      selection.toString(),
+      start
+    );
+    if (!nextSelection) {
+      setPendingSelection(null);
+      setAnnotationMenu(null);
+      return;
+    }
+
+    setPendingSelection(nextSelection);
+    setAnnotationMenu(null);
+  }
+
+  function openAnnotationDraft(x: number, y: number) {
+    if (!pendingSelection) return;
 
     setSelectionDraft({
-      quote,
+      ...pendingSelection,
       note: "",
-      occurrence,
-      top: rect.bottom + window.scrollY + 8,
-      left: rect.left + window.scrollX,
+      top: y + 8,
+      left: x,
     });
+    setAnnotationMenu(null);
+    setAnnotationPaneOpen(true);
   }
 
   async function submitAnnotation() {
@@ -946,8 +1261,11 @@ function MaterialReadView({
       occurrence: selectionDraft.occurrence,
     });
     if (annotation) {
+      setPendingSelection(null);
       setSelectionDraft(null);
+      setAnnotationMenu(null);
       setActiveAnnotationId(annotation.id);
+      setAnnotationPaneOpen(true);
       window.getSelection()?.removeAllRanges();
     }
   }
