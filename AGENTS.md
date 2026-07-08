@@ -1,5 +1,9 @@
 # NoteForge Agent Notes
 
+额外：
+
+1、整个分析过程以及结果均用中文。
+
 ## Repository
 
 - GitHub: `https://github.com/calorsol/NoteForge.git`
@@ -79,3 +83,4 @@ curl -I https://noteforge.868601.xyz/
 ```bash
 ssh root@64.83.35.146 "docker exec nginx nginx -t && docker exec nginx nginx -s reload"
 ```
+
