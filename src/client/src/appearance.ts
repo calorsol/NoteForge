@@ -43,3 +43,15 @@ export function findSize(key: string): SizePreset {
 export function findBg(key: string): BgPreset {
   return BGS.find((b) => b.key === key) ?? BGS[0];
 }
+
+// 伪装（阅读）模式：把整个界面伪装成枯燥的内部文档，降低摸鱼被发现的概率。
+// 隐藏大标题/品牌色、压小字号、去掉写作入口，仅保留资料本体。
+const STEALTH_KEY = "nf_stealth";
+
+export function loadStealth(): boolean {
+  return localStorage.getItem(STEALTH_KEY) === "on";
+}
+
+export function saveStealth(on: boolean) {
+  localStorage.setItem(STEALTH_KEY, on ? "on" : "off");
+}

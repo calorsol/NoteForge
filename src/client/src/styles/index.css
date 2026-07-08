@@ -1415,3 +1415,114 @@ button {
   background: #fbe9e7;
   color: var(--danger);
 }
+
+/* ==========================================================================
+   伪装（阅读）模式 —— 把界面伪装成枯燥的内部文档 / Wiki。
+   由 <html data-stealth="on"> 触发（见 Layout.tsx）。
+   目标：隐藏大标题与品牌色，字号压小、对比压低，远看像一片普通文档。
+   ========================================================================== */
+:root[data-stealth="on"] {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #fafbfc;
+  --border: #e3e6ea;
+  --text: #3f454d;
+  --text-soft: #5f6572;
+  --text-faint: #9aa1ab;
+  --accent: #7a8394;
+  --accent-soft: #e8ecf1;
+  --accent-strong: #4a5261;
+  --shadow: 0 1px 2px rgba(30, 35, 45, 0.04);
+  /* 正文一并去掉衬线「读小说」气质，全部走系统无衬线小字 */
+  --serif: var(--sans);
+}
+
+/* 顶栏：压扁、去品牌色，品牌名变成灰色小字 */
+:root[data-stealth="on"] .topbar {
+  height: 46px;
+}
+:root[data-stealth="on"] .brand {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+:root[data-stealth="on"] .brand-dot {
+  display: none;
+}
+:root[data-stealth="on"] .nav a {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+:root[data-stealth="on"] .nav a.active {
+  font-weight: 500;
+}
+/* 隐藏「写作中心」入口，只留资料 */
+:root[data-stealth="on"] .nav a:nth-child(2) {
+  display: none;
+}
+/* 切回正常的按钮保持低调 */
+:root[data-stealth="on"] .stealth-toggle {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* 隐藏资料自身的大标题 */
+:root[data-stealth="on"] .mat-read-title {
+  display: none;
+}
+/* 编辑态标题输入框也降级为普通小字 */
+:root[data-stealth="on"] .material-editor .title-input {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* 正文：压小、收紧、降对比 */
+:root[data-stealth="on"] .mat-read,
+:root[data-stealth="on"] .prose {
+  font-size: 13px;
+  line-height: 1.7;
+  letter-spacing: 0;
+  color: #565b63;
+}
+
+/* 正文里的 Markdown 标题：抹平「大字」，降到接近正文 */
+:root[data-stealth="on"] .prose h1 {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin: 0.9em 0 0.3em;
+}
+:root[data-stealth="on"] .prose h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin: 0.9em 0 0.3em;
+}
+:root[data-stealth="on"] .prose h3 {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin: 0.8em 0 0.3em;
+}
+
+/* 彩色元素中性化，避免橙色高亮一眼露馅 */
+:root[data-stealth="on"] .prose blockquote {
+  border-left-color: #c7ccd4;
+  background: #f4f5f7;
+  color: var(--text-soft);
+  border-radius: 0;
+}
+:root[data-stealth="on"] .annotation-fragment {
+  text-decoration-color: #b4bac4;
+  background: rgba(122, 131, 148, 0.08);
+}
+:root[data-stealth="on"] .annotation-fragment.active,
+:root[data-stealth="on"] .annotation-fragment:hover {
+  background: rgba(122, 131, 148, 0.18);
+}
+
+/* 空状态大标题降级 */
+:root[data-stealth="on"] .empty h3 {
+  font-size: 14px;
+}
