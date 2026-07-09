@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 import { Layout } from "./components/Layout";
+import { DisguiseProvider } from "./disguise/DisguiseContext";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { MaterialsPage } from "./pages/MaterialsPage";
@@ -31,7 +32,9 @@ export function App() {
       <Route
         element={
           <RequireAuth>
-            <Layout />
+            <DisguiseProvider>
+              <Layout />
+            </DisguiseProvider>
           </RequireAuth>
         }
       >

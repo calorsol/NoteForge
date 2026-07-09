@@ -147,6 +147,28 @@ button {
   align-items: center;
   gap: 8px;
 }
+.brand-editable {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  border-radius: 6px;
+  padding: 1px 4px;
+  cursor: text;
+}
+.brand-editable:hover,
+.brand-editable:focus-visible {
+  background: rgba(0, 0, 0, 0.05);
+  outline: none;
+}
+.brand-editable-input {
+  min-width: 180px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  padding: 3px 8px;
+}
 .brand-dot {
   width: 10px;
   height: 10px;
@@ -177,6 +199,28 @@ button {
   gap: 12px;
   color: var(--text-soft);
   font-size: 14px;
+}
+.skin-select-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-faint);
+}
+.skin-select-label {
+  font-size: 12px;
+}
+.skin-select {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 28px 5px 10px;
+}
+.skin-select:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 .page {
   flex: 1;
@@ -544,6 +588,76 @@ button {
   position: relative;
   flex: 1;
   min-width: 0;
+}
+.csdn-decoy-header {
+  margin-bottom: 18px;
+}
+.csdn-decoy-title,
+.csdn-decoy-title-input {
+  margin: 0 0 10px;
+  font-size: 26px;
+  line-height: 1.35;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: #1f1f1f;
+}
+.csdn-decoy-title {
+  display: block;
+  border-radius: 8px;
+  padding: 2px 4px;
+  cursor: text;
+}
+.csdn-decoy-title:hover,
+.csdn-decoy-title:focus-visible {
+  background: rgba(252, 85, 49, 0.08);
+  outline: none;
+}
+.csdn-decoy-title-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font-family: inherit;
+  padding: 6px 10px;
+}
+.csdn-author-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-bottom: 10px;
+}
+.csdn-author-main,
+.csdn-author-stats,
+.csdn-tag-row {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.csdn-avatar-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fc5531, #ff8d72);
+  box-shadow: 0 4px 10px rgba(252, 85, 49, 0.2);
+}
+.csdn-author-name {
+  font-weight: 700;
+  color: #2a2a2a;
+}
+.csdn-author-time {
+  color: var(--text-faint);
+}
+.csdn-tag-chip {
+  border: 1px solid #ffd5cb;
+  border-radius: 999px;
+  background: #fff3ef;
+  color: #cf4a2d;
+  font-size: 12px;
+  padding: 3px 10px;
 }
 .annotation-pane {
   flex: 0 0 320px;
@@ -1417,11 +1531,9 @@ button {
 }
 
 /* ==========================================================================
-   伪装（阅读）模式 —— 把界面伪装成枯燥的内部文档 / Wiki。
-   由 <html data-stealth="on"> 触发（见 Layout.tsx）。
-   目标：隐藏大标题与品牌色，字号压小、对比压低，远看像一片普通文档。
+   伪装皮肤：Wiki。
    ========================================================================== */
-:root[data-stealth="on"] {
+:root[data-stealth-skin="wiki"] {
   --bg: #f4f5f7;
   --surface: #ffffff;
   --surface-2: #fafbfc;
@@ -1437,49 +1549,55 @@ button {
   --serif: var(--sans);
 }
 
+:root[data-stealth-skin="wiki"],
+:root[data-stealth-skin="csdn"] {
+  --shadow: 0 1px 2px rgba(30, 35, 45, 0.04);
+}
+
+/* 两种伪装皮肤的共同规则 */
+:root[data-stealth-skin="wiki"] .nav a:nth-child(2),
+:root[data-stealth-skin="csdn"] .nav a:nth-child(2) {
+  display: none;
+}
+:root[data-stealth-skin="wiki"] .mat-read-title,
+:root[data-stealth-skin="csdn"] .mat-read-title {
+  display: none;
+}
+
 /* 顶栏：压扁、去品牌色，品牌名变成灰色小字 */
-:root[data-stealth="on"] .topbar {
+:root[data-stealth-skin="wiki"] .topbar {
   height: 46px;
 }
-:root[data-stealth="on"] .brand {
+:root[data-stealth-skin="wiki"] .brand {
   font-weight: 600;
   font-size: 13px;
   color: var(--text-soft);
 }
-:root[data-stealth="on"] .brand-dot {
+:root[data-stealth-skin="wiki"] .brand-dot {
   display: none;
 }
-:root[data-stealth="on"] .nav a {
+:root[data-stealth-skin="wiki"] .nav a {
   font-size: 12px;
   padding: 5px 10px;
 }
-:root[data-stealth="on"] .nav a.active {
+:root[data-stealth-skin="wiki"] .nav a.active {
   font-weight: 500;
 }
-/* 隐藏「写作中心」入口，只留资料 */
-:root[data-stealth="on"] .nav a:nth-child(2) {
-  display: none;
-}
-/* 切回正常的按钮保持低调 */
-:root[data-stealth="on"] .stealth-toggle {
+:root[data-stealth-skin="wiki"] .skin-select {
   font-size: 12px;
   color: var(--text-faint);
 }
 
 /* 隐藏资料自身的大标题 */
-:root[data-stealth="on"] .mat-read-title {
-  display: none;
-}
-/* 编辑态标题输入框也降级为普通小字 */
-:root[data-stealth="on"] .material-editor .title-input {
+:root[data-stealth-skin="wiki"] .material-editor .title-input {
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0;
 }
 
 /* 正文：压小、收紧、降对比 */
-:root[data-stealth="on"] .mat-read,
-:root[data-stealth="on"] .prose {
+:root[data-stealth-skin="wiki"] .mat-read,
+:root[data-stealth-skin="wiki"] .prose {
   font-size: 13px;
   line-height: 1.7;
   letter-spacing: 0;
@@ -1487,19 +1605,19 @@ button {
 }
 
 /* 正文里的 Markdown 标题：抹平「大字」，降到接近正文 */
-:root[data-stealth="on"] .prose h1 {
+:root[data-stealth-skin="wiki"] .prose h1 {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text-soft);
   margin: 0.9em 0 0.3em;
 }
-:root[data-stealth="on"] .prose h2 {
+:root[data-stealth-skin="wiki"] .prose h2 {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-soft);
   margin: 0.9em 0 0.3em;
 }
-:root[data-stealth="on"] .prose h3 {
+:root[data-stealth-skin="wiki"] .prose h3 {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-soft);
@@ -1507,22 +1625,138 @@ button {
 }
 
 /* 彩色元素中性化，避免橙色高亮一眼露馅 */
-:root[data-stealth="on"] .prose blockquote {
+:root[data-stealth-skin="wiki"] .prose blockquote {
   border-left-color: #c7ccd4;
   background: #f4f5f7;
   color: var(--text-soft);
   border-radius: 0;
 }
-:root[data-stealth="on"] .annotation-fragment {
+:root[data-stealth-skin="wiki"] .annotation-fragment {
   text-decoration-color: #b4bac4;
   background: rgba(122, 131, 148, 0.08);
 }
-:root[data-stealth="on"] .annotation-fragment.active,
-:root[data-stealth="on"] .annotation-fragment:hover {
+:root[data-stealth-skin="wiki"] .annotation-fragment.active,
+:root[data-stealth-skin="wiki"] .annotation-fragment:hover {
   background: rgba(122, 131, 148, 0.18);
 }
 
 /* 空状态大标题降级 */
-:root[data-stealth="on"] .empty h3 {
+:root[data-stealth-skin="wiki"] .empty h3 {
   font-size: 14px;
+}
+
+/* ==========================================================================
+   伪装皮肤：CSDN。
+   ========================================================================== */
+:root[data-stealth-skin="csdn"] {
+  --bg: #f5f6f7;
+  --surface: #ffffff;
+  --surface-2: #fafafa;
+  --border: #e6e8eb;
+  --text: #222222;
+  --text-soft: #5e6773;
+  --text-faint: #8f98a3;
+  --accent: #fc5531;
+  --accent-soft: #fff1ed;
+  --accent-strong: #cf4a2d;
+  --serif: var(--sans);
+}
+:root[data-stealth-skin="csdn"] body {
+  background: linear-gradient(180deg, #f5f6f7 0%, #f7f8fa 100%);
+}
+:root[data-stealth-skin="csdn"] .topbar {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom-color: #eceef1;
+}
+:root[data-stealth-skin="csdn"] .brand {
+  color: #fc5531;
+  font-size: 18px;
+}
+:root[data-stealth-skin="csdn"] .brand-dot {
+  background: #fc5531;
+  border-radius: 50%;
+}
+:root[data-stealth-skin="csdn"] .brand-editable:hover,
+:root[data-stealth-skin="csdn"] .brand-editable:focus-visible {
+  background: rgba(252, 85, 49, 0.08);
+}
+:root[data-stealth-skin="csdn"] .nav a.active {
+  background: #fff1ed;
+  color: #cf4a2d;
+}
+:root[data-stealth-skin="csdn"] .skin-select {
+  border-color: #ece0dc;
+  background: #fffaf8;
+}
+:root[data-stealth-skin="csdn"] .mat-detail {
+  padding-top: 28px;
+}
+:root[data-stealth-skin="csdn"] .mat-read,
+:root[data-stealth-skin="csdn"] .prose {
+  font-size: 15.5px;
+  line-height: 1.8;
+  color: #2b2f33;
+}
+:root[data-stealth-skin="csdn"] .prose h1,
+:root[data-stealth-skin="csdn"] .prose h2,
+:root[data-stealth-skin="csdn"] .prose h3 {
+  font-family: var(--sans);
+  font-weight: 700;
+  color: #20242a;
+}
+:root[data-stealth-skin="csdn"] .prose a {
+  color: #1e6bb8;
+}
+:root[data-stealth-skin="csdn"] .prose blockquote {
+  border-left-color: #fc5531;
+  background: #fff6f3;
+  color: #5b6570;
+}
+:root[data-stealth-skin="csdn"] .prose code {
+  background: #f1f3f5;
+  color: #cf4a2d;
+}
+:root[data-stealth-skin="csdn"] .prose pre {
+  position: relative;
+  background: #f6f8fa;
+  color: #1f2328;
+  border: 1px solid #e5e9ef;
+  border-radius: 14px;
+  padding: 40px 16px 16px;
+  box-shadow: none;
+}
+:root[data-stealth-skin="csdn"] .prose pre::before {
+  content: "代码";
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eef3f8;
+  color: #5f6f82;
+  font-size: 12px;
+  line-height: 1.2;
+}
+:root[data-stealth-skin="csdn"] .prose pre code {
+  color: inherit;
+}
+:root[data-stealth-skin="csdn"] .annotation-fragment {
+  text-decoration-color: #fc5531;
+  background: rgba(252, 85, 49, 0.08);
+}
+:root[data-stealth-skin="csdn"] .annotation-fragment.active,
+:root[data-stealth-skin="csdn"] .annotation-fragment:hover {
+  background: rgba(252, 85, 49, 0.16);
+}
+:root[data-stealth-skin="csdn"] .annotation-prose::after {
+  content: "版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。";
+  display: block;
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px solid #f2ddd6;
+  border-radius: 12px;
+  background: #fff8f6;
+  color: #7b6a63;
+  font-size: 13px;
+  line-height: 1.7;
 }

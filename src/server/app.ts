@@ -5,6 +5,7 @@ import cors from "cors";
 import type { DatabaseHandle } from "./db";
 import { database as defaultDatabase } from "./db";
 import { createAuthRouter } from "./routes/auth.routes";
+import { createConfigRouter } from "./routes/config.routes";
 import { createMaterialsRouter } from "./routes/materials.routes";
 import { createDocumentsRouter } from "./routes/documents.routes";
 
@@ -23,6 +24,7 @@ export function createApp(options: AppOptions = {}) {
   });
 
   app.use("/api/auth", createAuthRouter(database));
+  app.use("/api/config", createConfigRouter(database));
   app.use("/api/materials", createMaterialsRouter(database));
   app.use("/api/documents", createDocumentsRouter(database));
 

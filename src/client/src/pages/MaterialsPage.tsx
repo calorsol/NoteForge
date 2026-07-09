@@ -17,6 +17,8 @@ import {
   SearchIcon,
   TrashIcon,
 } from "../components/icons";
+import { InlineEditable } from "../components/InlineEditable";
+import { useDisguise } from "../disguise/DisguiseContext";
 import {
   DAY_WIDTH_MAX,
   DAY_WIDTH_MIN,
@@ -40,6 +42,12 @@ import {
 } from "./materialsAnnotations";
 
 const COLLAPSED_PANE_WIDTH = 52;
+const CSDN_STATS = {
+  reads: "1,234",
+  likes: "56",
+  favorites: "23",
+};
+const CSDN_TAGS = ["技术随笔", "阅读整理", "效率工具"];
 
 function today(): string {
   const now = new Date();
@@ -870,6 +878,7 @@ function MaterialReadViewV2({
   const contentRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const annotationMenuRef = useRef<HTMLDivElement | null>(null);
+  const { skin, getConfig, updateConfig } = useDisguise();
   const renderedHtml = useMemo(
     () => renderMarkdown(material.content || "_（这份资料还没有内容，先切到编辑模式补充正文）_"),
     [material.content]
@@ -990,6 +999,36 @@ function MaterialReadViewV2({
   return (
     <div className="read-layout">
       <div className="read-article-wrap">
+        {skin === "csdn" && (
+          <div className="csdn-decoy-header">
+            <InlineEditable
+              as="h1"
+              className="csdn-decoy-title"
+              inputClassName="csdn-decoy-title-input"
+              value={getConfig("disguise.csdn_title")}
+              onCommit={(nextValue) => updateConfig("disguise.csdn_title", nextValue)}
+            />
+            <div className="csdn-author-bar">
+              <div className="csdn-author-main">
+                <span className="csdn-avatar-dot" />
+                <span className="csdn-author-name">{getConfig("disguise.csdn_brand")}</span>
+                <span className="csdn-author-time">于 {material.day} 发布</span>
+              </div>
+              <div className="csdn-author-stats">
+                <span>阅读 {CSDN_STATS.reads}</span>
+                <span>点赞 {CSDN_STATS.likes}</span>
+                <span>收藏 {CSDN_STATS.favorites}</span>
+              </div>
+              <div className="csdn-tag-row">
+                {CSDN_TAGS.map((tag) => (
+                  <span key={tag} className="csdn-tag-chip">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         <div
           ref={contentRef}
           className="mat-read prose annotation-prose"

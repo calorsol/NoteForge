@@ -3,6 +3,7 @@
 export type FontPreset = { key: string; label: string; stack: string };
 export type BgPreset = { key: string; label: string; bg: string; text: string; swatch: string };
 export type SizePreset = { key: string; label: string; px: number };
+export type StealthSkin = "off" | "wiki" | "csdn";
 
 export const FONTS: FontPreset[] = [
   { key: "song", label: "宋体", stack: '"Songti SC","STSong","SimSun","Noto Serif SC",Georgia,serif' },
@@ -47,11 +48,39 @@ export function findBg(key: string): BgPreset {
 // 伪装（阅读）模式：把整个界面伪装成枯燥的内部文档，降低摸鱼被发现的概率。
 // 隐藏大标题/品牌色、压小字号、去掉写作入口，仅保留资料本体。
 const STEALTH_KEY = "nf_stealth";
+const LAST_STEALTH_KEY = "nf_stealth_last_skin";
+
+export function loadSkin(): StealthSkin {
+  const value = localStorage.getItem(STEALTH_KEY);
+  if (value === "csdn" || value === "wiki" || value === "off") {
+    return value;
+  }
+  if (value === "on") {
+    return "wiki";
+  }
+  return "off";
+}
+
+export function saveSkin(skin: StealthSkin) {
+  localStorage.setItem(STEALTH_KEY, skin);
+  if (skin !== "off") {
+    localStorage.setItem(LAST_STEALTH_KEY, skin);
+  }
+}
+
+export function loadLastSkin(): Exclude<StealthSkin, "off"> {
+  const value = localStorage.getItem(LAST_STEALTH_KEY);
+  return value === "csdn" ? "csdn" : "wiki";
+}
+
+export function saveLastSkin(skin: Exclude<StealthSkin, "off">) {
+  localStorage.setItem(LAST_STEALTH_KEY, skin);
+}
 
 export function loadStealth(): boolean {
-  return localStorage.getItem(STEALTH_KEY) === "on";
+  return loadSkin() !== "off";
 }
 
 export function saveStealth(on: boolean) {
-  localStorage.setItem(STEALTH_KEY, on ? "on" : "off");
+  saveSkin(on ? "wiki" : "off");
 }

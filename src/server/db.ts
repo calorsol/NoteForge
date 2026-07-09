@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import Database from "better-sqlite3";
 
 export type DatabaseHandle = {
@@ -54,7 +55,44 @@ function initialize(connection: Database.Database) {
       updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS idx_documents_user ON documents(user_id, updated_at);
+
+    CREATE TABLE IF NOT EXISTS sys_config (
+      id            TEXT PRIMARY KEY,
+      config_key    TEXT NOT NULL UNIQUE,
+      config_value  TEXT NOT NULL DEFAULT '',
+      config_name   TEXT NOT NULL DEFAULT '',
+      config_desc   TEXT NOT NULL DEFAULT ''
+    );
   `);
+
+  const seedConfigRows = [
+    {
+      key: "disguise.wiki_brand",
+      value: "内部文档中心",
+      name: "Wiki 品牌名",
+      desc: "Wiki 皮肤顶栏与浏览器标签页显示的伪装名称",
+    },
+    {
+      key: "disguise.csdn_title",
+      value: "技术笔记",
+      name: "CSDN 大标题",
+      desc: "CSDN 皮肤下全局显示的伪装文章标题",
+    },
+    {
+      key: "disguise.csdn_brand",
+      value: "技术博客_CSDN",
+      name: "CSDN 品牌名",
+      desc: "CSDN 皮肤顶栏显示的伪装博客名",
+    },
+  ];
+
+  const insertConfig = connection.prepare(
+    `INSERT OR IGNORE INTO sys_config (id, config_key, config_value, config_name, config_desc)
+     VALUES (?, ?, ?, ?, ?)`
+  );
+  for (const row of seedConfigRows) {
+    insertConfig.run(crypto.randomUUID(), row.key, row.value, row.name, row.desc);
+  }
 }
 
 export function createDatabase(filePath: string): DatabaseHandle {
