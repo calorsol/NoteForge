@@ -112,6 +112,40 @@ withServer("materials: update and delete", async ({ baseUrl }) => {
   assert.equal(missing.status, 404);
 });
 
+withServer("materials: can mark a material as read and unread", async ({ baseUrl }) => {
+  const token = await registerUser(baseUrl, "matread");
+  const created = await fetch(`${baseUrl}/api/materials`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ day: "2026-07-02", title: "待阅读资料", content: "正文" }),
+  });
+  assert.equal(created.status, 201);
+  const createdPayload = await created.json();
+  assert.equal(createdPayload.material.is_read, false);
+
+  const markedRead = await fetch(`${baseUrl}/api/materials/${createdPayload.material.id}`, {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify({ is_read: true }),
+  });
+  assert.equal(markedRead.status, 200);
+  assert.equal((await markedRead.json()).material.is_read, true);
+
+  const listAfterRead = await fetch(`${baseUrl}/api/materials?day=2026-07-02`, {
+    headers: authHeaders(token),
+  });
+  assert.equal(listAfterRead.status, 200);
+  assert.equal((await listAfterRead.json()).materials[0].is_read, true);
+
+  const markedUnread = await fetch(`${baseUrl}/api/materials/${createdPayload.material.id}`, {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify({ is_read: false }),
+  });
+  assert.equal(markedUnread.status, 200);
+  assert.equal((await markedUnread.json()).material.is_read, false);
+});
+
 withServer("materials: derive title from content and reject empty saves", async ({ baseUrl }) => {
   const token = await registerUser(baseUrl, "mattitle");
 

@@ -25,6 +25,7 @@ const updateSchema = z
     day: z.string().regex(dayPattern).optional(),
     title: z.string().max(200).optional(),
     content: z.string().optional(),
+    is_read: z.boolean().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, { message: "没有可更新的字段" });
 
@@ -47,6 +48,7 @@ type MaterialRow = {
   day: string;
   title: string;
   content: string;
+  is_read: number;
   created_at: string;
   updated_at: string;
 };
@@ -76,8 +78,16 @@ function groupAnnotations(rows: AnnotationRow[]) {
 
 function getOwnedMaterial(db: ReturnType<DatabaseHandle["getConnection"]>, materialId: string, userId: number) {
   return db
-    .prepare("SELECT id, title, content FROM materials WHERE id = ? AND user_id = ?")
-    .get(materialId, userId) as { id: number; title: string; content: string } | undefined;
+    .prepare("SELECT id, title, content, is_read FROM materials WHERE id = ? AND user_id = ?")
+    .get(materialId, userId) as { id: number; title: string; content: string; is_read: number } | undefined;
+}
+
+function serializeMaterial(material: MaterialRow, annotations: AnnotationRow[]) {
+  return {
+    ...material,
+    is_read: material.is_read === 1,
+    annotations,
+  };
 }
 
 export function createMaterialsRouter(database: DatabaseHandle) {
@@ -104,7 +114,7 @@ export function createMaterialsRouter(database: DatabaseHandle) {
 
     const materials = db
       .prepare(
-        `SELECT id, day, title, content, created_at, updated_at
+        `SELECT id, day, title, content, is_read, created_at, updated_at
          FROM materials
          WHERE user_id = ? AND day = ?
          ORDER BY created_at ASC, id ASC`
@@ -126,10 +136,7 @@ export function createMaterialsRouter(database: DatabaseHandle) {
 
     res.json({
       day,
-      materials: materials.map((material) => ({
-        ...material,
-        annotations: annotationsByMaterial.get(material.id) ?? [],
-      })),
+      materials: materials.map((material) => serializeMaterial(material, annotationsByMaterial.get(material.id) ?? [])),
     });
   });
 
@@ -142,14 +149,14 @@ export function createMaterialsRouter(database: DatabaseHandle) {
     const day = parsed.data.day ?? today();
     const title = parsed.data.title?.trim() ?? "";
     const info = db
-      .prepare("INSERT INTO materials (user_id, day, title, content) VALUES (?, ?, ?, ?)")
+      .prepare("INSERT INTO materials (user_id, day, title, content, is_read) VALUES (?, ?, ?, ?, 0)")
       .run(req.userId, day, title, parsed.data.content ?? "");
 
     const material = db
-      .prepare("SELECT id, day, title, content, created_at, updated_at FROM materials WHERE id = ?")
+      .prepare("SELECT id, day, title, content, is_read, created_at, updated_at FROM materials WHERE id = ?")
       .get(Number(info.lastInsertRowid)) as MaterialRow;
 
-    res.status(201).json({ material: { ...material, annotations: [] } });
+    res.status(201).json({ material: serializeMaterial(material, []) });
   });
 
   router.put("/:id", (req, res) => {
@@ -182,6 +189,10 @@ export function createMaterialsRouter(database: DatabaseHandle) {
       fields.push("content = ?");
       values.push(parsed.data.content);
     }
+    if (parsed.data.is_read !== undefined) {
+      fields.push("is_read = ?");
+      values.push(parsed.data.is_read ? 1 : 0);
+    }
     fields.push("title = ?");
     values.push(resolvedTitle.title);
     fields.push("updated_at = datetime('now')");
@@ -193,7 +204,7 @@ export function createMaterialsRouter(database: DatabaseHandle) {
     );
 
     const material = db
-      .prepare("SELECT id, day, title, content, created_at, updated_at FROM materials WHERE id = ?")
+      .prepare("SELECT id, day, title, content, is_read, created_at, updated_at FROM materials WHERE id = ?")
       .get(req.params.id) as MaterialRow;
     const annotations = db
       .prepare(
@@ -204,7 +215,7 @@ export function createMaterialsRouter(database: DatabaseHandle) {
       )
       .all(req.params.id) as AnnotationRow[];
 
-    res.json({ material: { ...material, annotations } });
+    res.json({ material: serializeMaterial(material, annotations) });
   });
 
   router.delete("/:id", (req, res) => {

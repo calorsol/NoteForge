@@ -479,6 +479,9 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.mli-title.is-read {
+  color: var(--text-faint);
+}
 .mli-snippet {
   font-size: 12px;
   color: var(--text-faint);

@@ -371,6 +371,7 @@ export function MaterialsPage() {
   }, [materials, query]);
 
   const selectedMaterial = materials.find((material) => material.id === selectedId) ?? null;
+  const menuMaterial = menu ? materials.find((material) => material.id === menu.id) ?? null : null;
 
   const setPaneWidth = useCallback((pane: PaneKey, width: number) => {
     setLayout((current) => {
@@ -405,7 +406,7 @@ export function MaterialsPage() {
     }
   }
 
-  async function saveMaterial(patch: Partial<Pick<Material, "title" | "content" | "day">>) {
+  async function saveMaterial(patch: Partial<Pick<Material, "title" | "content" | "day" | "is_read">>) {
     if (!selectedMaterial) return;
     setSaveState("saving");
     setSaveError(null);
@@ -439,6 +440,21 @@ export function MaterialsPage() {
       setSaveError(null);
       await loadStats();
       await loadMaterials(selectedDay);
+    } catch (error) {
+      handleAuthError(error);
+    }
+  }
+
+  async function updateMaterialReadState(id: number, isRead: boolean) {
+    try {
+      const data = await api<{ material: Material }>(`/materials/${id}`, {
+        method: "PUT",
+        body: { is_read: isRead },
+      });
+      setMaterials((current) =>
+        current.map((material) => (material.id === data.material.id ? data.material : material))
+      );
+      setSaveError(null);
     } catch (error) {
       handleAuthError(error);
     }
@@ -630,7 +646,9 @@ export function MaterialsPage() {
                   setMenu({ id: material.id, x: event.clientX, y: event.clientY });
                 }}
               >
-                <div className="mli-title">{material.title || "未命名资料"}</div>
+                <div className={`mli-title ${material.is_read ? "is-read" : ""}`}>
+                  {material.title || "未命名资料"}
+                </div>
                 <div className="mli-snippet">
                   {material.content.replace(/\s+/g, " ").slice(0, 40) || "（空）"}
                 </div>
@@ -708,6 +726,17 @@ export function MaterialsPage() {
             }}
           />
           <div className="context-menu" style={{ left: menu.x, top: menu.y }}>
+            <button
+              onClick={() => {
+                const id = menu.id;
+                setMenu(null);
+                if (menuMaterial) {
+                  void updateMaterialReadState(id, !menuMaterial.is_read);
+                }
+              }}
+            >
+              {menuMaterial?.is_read ? "取消已阅读" : "标记为已阅读"}
+            </button>
             <button
               className="danger"
               onClick={() => {

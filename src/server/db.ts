@@ -12,6 +12,13 @@ function ensureDirectory(filePath: string) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
 }
 
+function hasColumn(connection: Database.Database, tableName: string, columnName: string) {
+  const rows = connection
+    .prepare(`PRAGMA table_info(${tableName})`)
+    .all() as { name: string }[];
+  return rows.some((row) => row.name === columnName);
+}
+
 function initialize(connection: Database.Database) {
   connection.pragma("foreign_keys = ON");
 
@@ -29,6 +36,7 @@ function initialize(connection: Database.Database) {
       day         TEXT    NOT NULL,
       title       TEXT    NOT NULL,
       content     TEXT    NOT NULL DEFAULT '',
+      is_read     INTEGER NOT NULL DEFAULT 0,
       created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
       updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
     );
@@ -64,6 +72,10 @@ function initialize(connection: Database.Database) {
       config_desc   TEXT NOT NULL DEFAULT ''
     );
   `);
+
+  if (!hasColumn(connection, "materials", "is_read")) {
+    connection.exec("ALTER TABLE materials ADD COLUMN is_read INTEGER NOT NULL DEFAULT 0");
+  }
 
   const seedConfigRows = [
     {
