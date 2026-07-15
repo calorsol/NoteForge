@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { loadLastSkin, saveLastSkin, type StealthSkin } from "../appearance";
+import { isCsdnSkin, loadLastSkin, saveLastSkin, type StealthSkin } from "../appearance";
 import { InlineEditable } from "./InlineEditable";
 import { useDisguise } from "../disguise/DisguiseContext";
 
@@ -46,7 +46,7 @@ export function Layout() {
   const brand =
     skin === "wiki"
       ? getConfig("disguise.wiki_brand")
-      : skin === "csdn"
+      : isCsdnSkin(skin)
         ? getConfig("disguise.csdn_brand")
         : NORMAL_TITLE;
 
@@ -63,7 +63,7 @@ export function Layout() {
               value={brand}
               onCommit={(nextValue) => updateConfig("disguise.wiki_brand", nextValue)}
             />
-          ) : skin === "csdn" ? (
+          ) : isCsdnSkin(skin) ? (
             <InlineEditable
               as="span"
               className="brand-editable"
@@ -94,6 +94,7 @@ export function Layout() {
               <option value="off">关闭</option>
               <option value="wiki">内部文档</option>
               <option value="csdn">CSDN</option>
+              <option value="csdn-dark">CSDN 暗黑</option>
             </select>
           </label>
           {!stealthOn && (

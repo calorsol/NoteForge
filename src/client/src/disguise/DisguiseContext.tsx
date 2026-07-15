@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "../api";
-import { loadSkin, saveSkin, type StealthSkin } from "../appearance";
+import { isCsdnSkin, loadSkin, saveSkin, type StealthSkin } from "../appearance";
 import { useAuth } from "../auth/AuthContext";
 
 const DEFAULT_CONFIG = {
@@ -35,7 +35,7 @@ function resolveDocumentTitle(skin: StealthSkin, config: DisguiseConfig) {
   if (skin === "wiki") {
     return config["disguise.wiki_brand"] ?? DEFAULT_CONFIG["disguise.wiki_brand"];
   }
-  if (skin === "csdn") {
+  if (isCsdnSkin(skin)) {
     return `${config["disguise.csdn_title"] ?? DEFAULT_CONFIG["disguise.csdn_title"]}_CSDN博客`;
   }
   return "NoteForge";

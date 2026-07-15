@@ -1553,17 +1553,17 @@ button {
 }
 
 :root[data-stealth-skin="wiki"],
-:root[data-stealth-skin="csdn"] {
+:root[data-stealth-skin^="csdn"] {
   --shadow: 0 1px 2px rgba(30, 35, 45, 0.04);
 }
 
 /* 两种伪装皮肤的共同规则 */
 :root[data-stealth-skin="wiki"] .nav a:nth-child(2),
-:root[data-stealth-skin="csdn"] .nav a:nth-child(2) {
+:root[data-stealth-skin^="csdn"] .nav a:nth-child(2) {
   display: none;
 }
 :root[data-stealth-skin="wiki"] .mat-read-title,
-:root[data-stealth-skin="csdn"] .mat-read-title {
+:root[data-stealth-skin^="csdn"] .mat-read-title {
   display: none;
 }
 
@@ -1651,7 +1651,7 @@ button {
 /* ==========================================================================
    伪装皮肤：CSDN。
    ========================================================================== */
-:root[data-stealth-skin="csdn"] {
+:root[data-stealth-skin^="csdn"] {
   --bg: #f5f6f7;
   --surface: #ffffff;
   --surface-2: #fafafa;
@@ -1664,62 +1664,62 @@ button {
   --accent-strong: #cf4a2d;
   --serif: var(--sans);
 }
-:root[data-stealth-skin="csdn"] body {
+:root[data-stealth-skin^="csdn"] body {
   background: linear-gradient(180deg, #f5f6f7 0%, #f7f8fa 100%);
 }
-:root[data-stealth-skin="csdn"] .topbar {
+:root[data-stealth-skin^="csdn"] .topbar {
   background: rgba(255, 255, 255, 0.96);
   border-bottom-color: #eceef1;
 }
-:root[data-stealth-skin="csdn"] .brand {
+:root[data-stealth-skin^="csdn"] .brand {
   color: #fc5531;
   font-size: 18px;
 }
-:root[data-stealth-skin="csdn"] .brand-dot {
+:root[data-stealth-skin^="csdn"] .brand-dot {
   background: #fc5531;
   border-radius: 50%;
 }
-:root[data-stealth-skin="csdn"] .brand-editable:hover,
-:root[data-stealth-skin="csdn"] .brand-editable:focus-visible {
+:root[data-stealth-skin^="csdn"] .brand-editable:hover,
+:root[data-stealth-skin^="csdn"] .brand-editable:focus-visible {
   background: rgba(252, 85, 49, 0.08);
 }
-:root[data-stealth-skin="csdn"] .nav a.active {
+:root[data-stealth-skin^="csdn"] .nav a.active {
   background: #fff1ed;
   color: #cf4a2d;
 }
-:root[data-stealth-skin="csdn"] .skin-select {
+:root[data-stealth-skin^="csdn"] .skin-select {
   border-color: #ece0dc;
   background: #fffaf8;
 }
-:root[data-stealth-skin="csdn"] .mat-detail {
+:root[data-stealth-skin^="csdn"] .mat-detail {
   padding-top: 28px;
 }
-:root[data-stealth-skin="csdn"] .mat-read,
-:root[data-stealth-skin="csdn"] .prose {
+:root[data-stealth-skin^="csdn"] .mat-read,
+:root[data-stealth-skin^="csdn"] .prose {
   font-size: 15.5px;
   line-height: 1.8;
   color: #2b2f33;
 }
-:root[data-stealth-skin="csdn"] .prose h1,
-:root[data-stealth-skin="csdn"] .prose h2,
-:root[data-stealth-skin="csdn"] .prose h3 {
+:root[data-stealth-skin^="csdn"] .prose h1,
+:root[data-stealth-skin^="csdn"] .prose h2,
+:root[data-stealth-skin^="csdn"] .prose h3 {
   font-family: var(--sans);
   font-weight: 700;
   color: #20242a;
 }
-:root[data-stealth-skin="csdn"] .prose a {
+:root[data-stealth-skin^="csdn"] .prose a {
   color: #1e6bb8;
 }
-:root[data-stealth-skin="csdn"] .prose blockquote {
+:root[data-stealth-skin^="csdn"] .prose blockquote {
   border-left-color: #fc5531;
   background: #fff6f3;
   color: #5b6570;
 }
-:root[data-stealth-skin="csdn"] .prose code {
+:root[data-stealth-skin^="csdn"] .prose code {
   background: #f1f3f5;
   color: #cf4a2d;
 }
-:root[data-stealth-skin="csdn"] .prose pre {
+:root[data-stealth-skin^="csdn"] .prose pre {
   position: relative;
   background: #f6f8fa;
   color: #1f2328;
@@ -1728,7 +1728,7 @@ button {
   padding: 40px 16px 16px;
   box-shadow: none;
 }
-:root[data-stealth-skin="csdn"] .prose pre::before {
+:root[data-stealth-skin^="csdn"] .prose pre::before {
   content: "代码";
   position: absolute;
   top: 10px;
@@ -1740,18 +1740,18 @@ button {
   font-size: 12px;
   line-height: 1.2;
 }
-:root[data-stealth-skin="csdn"] .prose pre code {
+:root[data-stealth-skin^="csdn"] .prose pre code {
   color: inherit;
 }
-:root[data-stealth-skin="csdn"] .annotation-fragment {
+:root[data-stealth-skin^="csdn"] .annotation-fragment {
   text-decoration-color: #fc5531;
   background: rgba(252, 85, 49, 0.08);
 }
-:root[data-stealth-skin="csdn"] .annotation-fragment.active,
-:root[data-stealth-skin="csdn"] .annotation-fragment:hover {
+:root[data-stealth-skin^="csdn"] .annotation-fragment.active,
+:root[data-stealth-skin^="csdn"] .annotation-fragment:hover {
   background: rgba(252, 85, 49, 0.16);
 }
-:root[data-stealth-skin="csdn"] .annotation-prose::after {
+:root[data-stealth-skin^="csdn"] .annotation-prose::after {
   content: "版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接及本声明。";
   display: block;
   margin-top: 24px;
@@ -1762,4 +1762,108 @@ button {
   color: #7b6a63;
   font-size: 13px;
   line-height: 1.7;
+}
+
+/* ==========================================================================
+   伪装皮肤：CSDN 暗黑。版式沿用上面 ^="csdn" 的共同规则，这里只翻转配色。
+   主色从 #fc5531 提亮到 #ff6a45，原色在深底上会发闷。
+   ========================================================================== */
+:root[data-stealth-skin="csdn-dark"] {
+  --bg: #16181c;
+  --surface: #1d2025;
+  --surface-2: #22262c;
+  --border: #2f343c;
+  --text: #d7dbe1;
+  --text-soft: #9aa3ae;
+  --text-faint: #6b7481;
+  --accent: #ff6a45;
+  --accent-soft: #2a1b16;
+  --accent-strong: #ff8a6b;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+:root[data-stealth-skin="csdn-dark"] body {
+  background: linear-gradient(180deg, #16181c 0%, #131519 100%);
+}
+:root[data-stealth-skin="csdn-dark"] .topbar {
+  background: rgba(29, 32, 37, 0.96);
+  border-bottom-color: #2f343c;
+}
+:root[data-stealth-skin="csdn-dark"] .brand {
+  color: #ff6a45;
+}
+:root[data-stealth-skin="csdn-dark"] .brand-dot {
+  background: #ff6a45;
+}
+:root[data-stealth-skin="csdn-dark"] .brand-editable:hover,
+:root[data-stealth-skin="csdn-dark"] .brand-editable:focus-visible {
+  background: rgba(255, 106, 69, 0.16);
+}
+:root[data-stealth-skin="csdn-dark"] .nav a.active {
+  background: #2a1b16;
+  color: #ff8a6b;
+}
+:root[data-stealth-skin="csdn-dark"] .skin-select {
+  border-color: #3a3f47;
+  background: #22262c;
+  color: var(--text-soft);
+}
+:root[data-stealth-skin="csdn-dark"] .csdn-decoy-title,
+:root[data-stealth-skin="csdn-dark"] .csdn-decoy-title-input {
+  color: #eceff3;
+}
+:root[data-stealth-skin="csdn-dark"] .csdn-decoy-title:hover,
+:root[data-stealth-skin="csdn-dark"] .csdn-decoy-title:focus-visible {
+  background: rgba(255, 106, 69, 0.16);
+}
+:root[data-stealth-skin="csdn-dark"] .csdn-author-name {
+  color: #c9ced6;
+}
+:root[data-stealth-skin="csdn-dark"] .csdn-tag-chip {
+  border-color: #4a2a20;
+  background: #2a1b16;
+  color: #ff8a6b;
+}
+:root[data-stealth-skin="csdn-dark"] .mat-read,
+:root[data-stealth-skin="csdn-dark"] .prose {
+  color: #c2c8d0;
+}
+:root[data-stealth-skin="csdn-dark"] .prose h1,
+:root[data-stealth-skin="csdn-dark"] .prose h2,
+:root[data-stealth-skin="csdn-dark"] .prose h3 {
+  color: #e6e9ee;
+}
+:root[data-stealth-skin="csdn-dark"] .prose a {
+  color: #6cb0e8;
+}
+:root[data-stealth-skin="csdn-dark"] .prose blockquote {
+  border-left-color: #ff6a45;
+  background: #241b18;
+  color: #a9b0ba;
+}
+:root[data-stealth-skin="csdn-dark"] .prose code {
+  background: #22262c;
+  color: #ff8a6b;
+}
+:root[data-stealth-skin="csdn-dark"] .prose pre {
+  background: #14171b;
+  color: #cfd6e0;
+  border-color: #2b3038;
+}
+:root[data-stealth-skin="csdn-dark"] .prose pre::before {
+  background: #232830;
+  color: #8b95a3;
+}
+:root[data-stealth-skin="csdn-dark"] .annotation-fragment {
+  text-decoration-color: #ff6a45;
+  background: rgba(255, 106, 69, 0.16);
+}
+:root[data-stealth-skin="csdn-dark"] .annotation-fragment.active,
+:root[data-stealth-skin="csdn-dark"] .annotation-fragment:hover {
+  background: rgba(255, 106, 69, 0.28);
+}
+:root[data-stealth-skin="csdn-dark"] .annotation-prose::after {
+  border-color: #3a2f2b;
+  background: #1f1a18;
+  color: #8c8078;
 }

@@ -18,6 +18,7 @@ import {
   TrashIcon,
 } from "../components/icons";
 import { InlineEditable } from "../components/InlineEditable";
+import { isCsdnSkin } from "../appearance";
 import { useDisguise } from "../disguise/DisguiseContext";
 import {
   DAY_WIDTH_MAX,
@@ -1028,7 +1029,7 @@ function MaterialReadViewV2({
   return (
     <div className="read-layout">
       <div className="read-article-wrap">
-        {skin === "csdn" && (
+        {isCsdnSkin(skin) && (
           <div className="csdn-decoy-header">
             <InlineEditable
               as="h1"

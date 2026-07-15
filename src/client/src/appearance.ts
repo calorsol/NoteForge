@@ -3,7 +3,7 @@
 export type FontPreset = { key: string; label: string; stack: string };
 export type BgPreset = { key: string; label: string; bg: string; text: string; swatch: string };
 export type SizePreset = { key: string; label: string; px: number };
-export type StealthSkin = "off" | "wiki" | "csdn";
+export type StealthSkin = "off" | "wiki" | "csdn" | "csdn-dark";
 
 export const FONTS: FontPreset[] = [
   { key: "song", label: "宋体", stack: '"Songti SC","STSong","SimSun","Noto Serif SC",Georgia,serif' },
@@ -50,9 +50,14 @@ export function findBg(key: string): BgPreset {
 const STEALTH_KEY = "nf_stealth";
 const LAST_STEALTH_KEY = "nf_stealth_last_skin";
 
+// CSDN 有明暗两个变体，共用同一套伪装文案与版式，只有配色不同。
+export function isCsdnSkin(skin: StealthSkin): boolean {
+  return skin === "csdn" || skin === "csdn-dark";
+}
+
 export function loadSkin(): StealthSkin {
   const value = localStorage.getItem(STEALTH_KEY);
-  if (value === "csdn" || value === "wiki" || value === "off") {
+  if (value === "csdn" || value === "csdn-dark" || value === "wiki" || value === "off") {
     return value;
   }
   if (value === "on") {
@@ -70,7 +75,10 @@ export function saveSkin(skin: StealthSkin) {
 
 export function loadLastSkin(): Exclude<StealthSkin, "off"> {
   const value = localStorage.getItem(LAST_STEALTH_KEY);
-  return value === "csdn" ? "csdn" : "wiki";
+  if (value === "csdn" || value === "csdn-dark") {
+    return value;
+  }
+  return "wiki";
 }
 
 export function saveLastSkin(skin: Exclude<StealthSkin, "off">) {
